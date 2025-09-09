@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Social Media Platform{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-content">
+        <div class="card">
+            <h3>Your Profile</h3>
+            <p><strong>Username:</strong> {{ username }}</p>
+            <p><strong>Status:</strong> Active</p>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="openFriendSearch()">Add Friend</button>
+                <button class="btn btn-secondary" onclick="openFriendsModal()">Friends</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="friendSearchModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Friend</h3>
+            <span class="close" onclick="closeFriendSearch()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="search-container">
+                <input type="text" id="userSearchInput" placeholder="Search for users..." oninput="searchUsers()">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="friendsModal" class="modal">
+    <div class="modal-content friends-modal-content">
+        <div class="modal-header">
+            <h3>Friends</h3>
+            <span class="close" onclick="closeFriendsModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="friends-container">
+                <div class="friends-section">
+                    <div class="section-header">
+                        <h4>My Friends & Sent</h4>
+                        <span id="friends-total-count" class="count-badge">0</span>
+                    </div>
+                    <div id="friends-combined-list" class="friends-list">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+                
+                <div class="friends-section">
+                    <div class="section-header">
+                        <h4>Friend Requests</h4>
+                        <span id="requests-count" class="count-badge">0</span>
+                    </div>
+                    <div id="friend-requests-list" class="friend-requests-list">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Social Media Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Social Media Platform</h1>
+        {% if session.username %}
+            <nav>
+                <a href="{{ url_for('dashboard') }}">{{ session.username }}</a>
+                <div class="notification-container">
+                    <span class="notification-bell" onclick="toggleNotifications()">🔔</span>
+                    <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+                </div>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        {% endif %}
+    </header>
+    
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Notification Window -->
+    <div id="notification-window" class="notification-window" style="display: none;">
+        <div class="notification-window-content">
+            <div class="notification-window-header">
+                <h3>Notifications</h3>
+                <span class="close-notification-window" onclick="closeNotificationWindow()">&times;</span>
+            </div>
+            <div class="notification-window-body">
+                <div id="notification-list" class="notification-list">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="toast-notification" style="display: none;">
+        <div class="toast-content">
+            <span id="toast-message"></span>
+            <span class="toast-close" onclick="hideToast()">&times;</span>
+        </div>
+    </div>
+
+    {% if session.username %}
+    <script>
+        const socket = io();
+        let notificationCount = 0;
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('new_notification', function(notification) {
+            console.log('New notification:', notification);
+            
+            // Update notification badge
+            notificationCount++;
+            updateNotificationBadge();
+            
+            // Show toast notification
+            showToast(notification.message);
+            
+            // Add to notification list
+            addNotificationToList(notification);
+        });
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notification-badge');
+            if (notificationCount > 0) {
+                badge.textContent = notificationCount;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideToast, 5000);
+        }
+
+        function hideToast() {
+            document.getElementById('toast-notification').style.display = 'none';
+        }
+
+        function toggleNotifications() {
+            const window = document.getElementById('notification-window');
+            if (window.style.display === 'none') {
+                openNotificationWindow();
+            } else {
+                closeNotificationWindow();
+            }
+        }
+
+        function openNotificationWindow() {
+            const window = document.getElementById('notification-window');
+            window.style.display = 'block';
+            loadNotifications();
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
+        function closeNotificationWindow() {
+            const window = document.getElementById('notification-window');
+            window.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore background scroll
+        }
+
+        function loadNotifications() {
+            fetch('/notifications')
+                .then(response => response.json())
+                .then(notifications => {
+                    const notificationList = document.getElementById('notification-list');
+                    notificationList.innerHTML = '';
+                    
+                    if (notifications.length === 0) {
+                        notificationList.innerHTML = '<div class="no-notifications">No notifications yet</div>';
+                        return;
+                    }
+                    
+                    notifications.forEach(notification => {
+                        const notificationElement = createNotificationElement(notification);
+                        notificationList.appendChild(notificationElement);
+                    });
+                    
+                    // Clear the badge when notifications are loaded
+                    notificationCount = 0;
+                    updateNotificationBadge();
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
+
+        function createNotificationElement(notification) {
+            const notificationElement = document.createElement('div');
+            notificationElement.className = 'notification-item';
+            notificationElement.dataset.notificationId = notification.id;
+            
+            let actionsHTML = '';
+            if (notification.type === 'friend_request' && notification.data) {
+                actionsHTML = `
+                    <div class="notification-actions">
+                        <button class="btn btn-accept" onclick="handleFriendRequest(${notification.data.friendship_id}, 'accept', this)">
+                            Accept
+                        </button>
+                        <button class="btn btn-reject" onclick="handleFriendRequest(${notification.data.friendship_id}, 'reject', this)">
+                            Reject
+                        </button>
+                    </div>
+                `;
+            }
+            
+            notificationElement.innerHTML = `
+                <div class="notification-content">
+                    <p>${notification.message}</p>
+                    <small>${new Date(notification.created_at).toLocaleString()}</small>
+                    ${actionsHTML}
+                </div>
+            `;
+            
+            return notificationElement;
+        }
+
+        function addNotificationToList(notification) {
+            const notificationList = document.getElementById('notification-list');
+            const notificationElement = createNotificationElement(notification);
+            notificationList.insertBefore(notificationElement, notificationList.firstChild);
+        }
+
+        function handleFriendRequest(friendshipId, response, buttonElement) {
+            const notificationItem = buttonElement.closest('.notification-item');
+            const actionsDiv = buttonElement.closest('.notification-actions');
+            
+            // Disable buttons during request
+            const buttons = actionsDiv.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            fetch('/respond_friend_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    friendship_id: friendshipId,
+                    response: response
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (response === 'accept') {
+                        // Update the notification to show it was accepted
+                        actionsDiv.innerHTML = '<span class="status-accepted">✓ Friend request accepted</span>';
+                        showToast('Friend request accepted!');
+                    } else {
+                        // Remove the notification item for rejected requests
+                        notificationItem.remove();
+                        showToast('Friend request rejected');
+                    }
+                } else {
+                    // If the request doesn't exist anymore, remove the notification
+                    if (data.message && data.message.includes('not found')) {
+                        notificationItem.remove();
+                        showToast('This friend request no longer exists');
+                    } else {
+                        // Re-enable buttons if there was an error
+                        buttons.forEach(btn => btn.disabled = false);
+                        showToast('Error: ' + data.message);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error handling friend request:', error);
+                buttons.forEach(btn => btn.disabled = false);
+                showToast('Error processing request');
+            });
+        }
+
+        // Close notification window when clicking outside
+        window.onclick = function(event) {
+            const notificationWindow = document.getElementById('notification-window');
+            const bell = document.querySelector('.notification-bell');
+            const windowContent = document.querySelector('.notification-window-content');
+            
+            if (event.target === notificationWindow && !windowContent.contains(event.target)) {
+                closeNotificationWindow();
+            }
+        }
+
+        // Close notification window with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const notificationWindow = document.getElementById('notification-window');
+                if (notificationWindow.style.display === 'block') {
+                    closeNotificationWindow();
+                }
+            }
+        });
+    </script>
+    {% endif %}
+    
+</body>
+</html>

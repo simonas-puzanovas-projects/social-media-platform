@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Social Media Platform{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-toggle">
+        <button class="toggle-btn active" onclick="showLogin()">Login</button>
+        <button class="toggle-btn" onclick="showRegister()">Register</button>
+    </div>
+    
+    <div class="auth-forms">
+        <div class="form-section active" id="login-form">
+            <h2>Welcome Back</h2>
+            <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
+        
+        <div class="form-section" id="register-form">
+            <h2>Create Account</h2>
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                <div class="form-group">
+                    <label for="reg-username">Username:</label>
+                    <input type="text" id="reg-username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password:</label>
+                    <input type="password" id="reg-password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-secondary">Register</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showLogin() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    
+    loginForm.classList.add('active');
+    registerForm.classList.remove('active');
+    
+    toggleBtns[0].classList.add('active');
+    toggleBtns[1].classList.remove('active');
+}
+
+function showRegister() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    
+    registerForm.classList.add('active');
+    loginForm.classList.remove('active');
+    
+    toggleBtns[1].classList.add('active');
+    toggleBtns[0].classList.remove('active');
+}
+</script>
+{% endblock %}
