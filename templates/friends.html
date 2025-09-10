@@ -6,78 +6,26 @@
 <div class="dashboard-container">
     <div class="dashboard-content">
         <div class="card">
-            <div class="card-header">
-                <h3>My Friends</h3>
+            <div class="section-header">
+                <h3>My Friends & Sent</h3>
+                <span id="friends-total-count" class="count-badge">0</span>
             </div>
-            
-            {% if friends %}
-                <div class="friends-list">
-                    {% for user, friendship in friends %}
-                        <div class="friend-item">
-                            <div class="friend-info">
-                                <strong>{{ user.username }}</strong>
-                                <span class="status-badge friends">Friends</span>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-friends">You don't have any friends yet. Use the "Add Friend" button to send friend requests!</p>
-            {% endif %}
+            <div id="friends-combined-list" class="friends-list">
+                <div class="loading">Loading...</div>
+            </div>
         </div>
-
+        
         <div class="card">
-            <div class="card-header">
+            <div class="section-header">
                 <h3>Friend Requests</h3>
+                <span id="requests-count" class="count-badge">0</span>
             </div>
-            
-            {% if received_requests %}
-                <div class="friend-requests-list">
-                    {% for user, friendship in received_requests %}
-                        <div class="friend-request-item">
-                            <div class="friend-info">
-                                <strong>{{ user.username }}</strong>
-                                <span class="request-text">sent you a friend request</span>
-                            </div>
-                            <div class="request-actions">
-                                <button class="btn btn-success btn-sm" onclick="respondToRequest({{ friendship.id }}, 'accept')">Accept</button>
-                                <button class="btn btn-danger btn-sm" onclick="respondToRequest({{ friendship.id }}, 'reject')">Reject</button>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-requests">No pending friend requests.</p>
-            {% endif %}
+            <div id="friend-requests-list" class="friend-requests-list">
+                <div class="loading">Loading...</div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-function respondToRequest(friendshipId, response) {
-    fetch('/respond_friend_request', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-            friendship_id: friendshipId, 
-            response: response 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload(); // Refresh the page to show updated lists
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error responding to friend request:', error);
-        alert('Error processing friend request');
-    });
-}
-</script>
+<script src="{{ url_for('static', filename='friends.js') }}"></script>
 {% endblock %}

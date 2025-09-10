@@ -76,7 +76,7 @@ def login_required(f):
 @app.route('/')
 def home():
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        return render_template('dashboard.html', username=session['username'])
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -90,7 +90,7 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             session['username'] = user.username
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('home'))
         else:
             flash('Invalid username or password!', 'error')
     
@@ -126,10 +126,6 @@ def logout():
 # MAIN DASHBOARD ROUTES
 # ============================================================================
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard.html', username=session['username'])
 
 @app.route('/friends')
 @login_required
