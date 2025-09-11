@@ -35,11 +35,11 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="{{ url_for('home') }}" class="nav-item">
+                <a href="{{ url_for('bp_auth.home') }}" class="nav-item">
                     <span class="nav-icon">🏠</span>
                     <span class="nav-label">Home</span>
                 </a>
-                <a href="{{ url_for('friends') }}" class="nav-item">
+                <a href="{{ url_for('bp_dashboard.friends') }}" class="nav-item">
                     <span class="nav-icon">👥</span>
                     <span class="nav-label">Friends</span>
                 </a>
@@ -51,7 +51,7 @@
             </nav>
             
             <div class="sidebar-footer">
-                <a href="{{ url_for('logout') }}" class="nav-item logout-item">
+                <a href="{{ url_for('bp_auth.logout') }}" class="nav-item logout-item">
                     <span class="nav-icon">🚪</span>
                     <span class="nav-label">Logout</span>
                 </a>
