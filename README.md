@@ -142,10 +142,6 @@ social-media-platform/
 5. Run application: `python main.py`
 6. Access at: `http://localhost:5000`
 
-## ⚠️ Current Setup Issues
-- Database initialization is commented out in `main.py`
-- No admin user creation on first run
-- Missing `helpers.py` file (referenced in friends.py but doesn't exist)
 
 ## TODO: Next Feature - Chat System
 
