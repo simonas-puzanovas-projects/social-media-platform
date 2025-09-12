@@ -8,37 +8,39 @@ This is a web-based social media platform built with Flask that allows users to 
 
 ## Current Features
 
-### Authentication System
+### ✅ Authentication System
 - User registration and login
 - Password hashing for security
 - Session management
 - Logout functionality
 
-### User Management
+### ✅ User Management
 - User profiles with online status tracking
 - Last seen timestamps
-- Admin user creation on first run
+- Basic profile display
 
-### Friend System
+### ✅ Friend System
 - Send friend requests to other users
 - Accept/reject incoming friend requests
 - Cancel sent friend requests
 - Remove existing friends
 - Real-time status updates for friends
+- Complete API endpoints for friend data
 
-### Search & Discovery
+### ✅ Search & Discovery
 - User search functionality
 - Live search results with friendship status indicators
 - Prevent duplicate friend requests
 
-### Notifications
+### ✅ Notifications
 - Real-time notification system using WebSocket
 - Friend request notifications
 - Friend request acceptance notifications
 - Notification cleanup for stale requests
 - Visual notification indicators in UI
+- Toast notification system
 
-### Real-time Features
+### ✅ Real-time Features
 - WebSocket integration with Flask-SocketIO
 - Live online/offline status updates
 - Real-time notifications
@@ -75,54 +77,75 @@ This is a web-based social media platform built with Flask that allows users to 
 
 ```
 social-media-platform/
-├── main.py                 # Main Flask application
-├── requirements.txt        # Python dependencies
-├── templates/             # Jinja2 HTML templates
-│   ├── base.html          # Base template with navigation
-│   ├── login.html         # Login/registration page
-│   ├── dashboard.html     # Main user dashboard
-│   └── friends.html       # Friends management page
-├── static/               # Static assets
-│   ├── style.css         # Main stylesheet
-│   └── dashboard.js      # Frontend JavaScript
-└── instance/             # Database storage directory
+├── main.py                       # Application entry point
+├── requirements.txt              # Python dependencies
+├── app/                          # Main application package
+│   ├── __init__.py              # App factory and configuration
+│   ├── models/                  # Database models
+│   │   └── __init__.py          # User, Friendship, Notification models
+│   ├── routes/                  # Route blueprints
+│   │   ├── __init__.py          # Blueprint imports
+│   │   ├── auth.py              # Authentication routes
+│   │   ├── index.py             # Home page route
+│   │   ├── friends.py           # Friends management routes
+│   │   └── notifications.py     # Notification routes
+│   ├── socket/                  # WebSocket handlers
+│   │   └── __init__.py          # Socket.IO event handlers
+│   ├── templates/               # Jinja2 HTML templates
+│   │   ├── index.html           # Base template with navigation
+│   │   ├── home.html            # User home page
+│   │   ├── login.html           # Login/registration page
+│   │   ├── friends.html         # Friends management page
+│   │   └── toast_notification.html # Toast notification component
+│   └── static/                  # Static assets
+│       ├── style.css            # Main stylesheet
+│       ├── index.js             # Base JavaScript with Socket.IO
+│       ├── home.js              # Home page functionality
+│       ├── friends.js           # Friends page functionality
+│       └── toast_notification.js # Toast notification system
+└── instance/                    # Database storage directory
 ```
 
 ## Current Routes
 
-### Authentication
-- `/` - Home redirect
+### Authentication (`bp_auth`)
 - `/login` - Login page (GET/POST)
 - `/register` - User registration (POST)
 - `/logout` - User logout
 
-### Main Application
-- `/dashboard` - User dashboard
-- `/friends` - Friends management page
+### Main Application (`bp_index`)
+- `/` - Home page (redirects to login if not authenticated)
 
-### API Endpoints
-- `/search_users` - User search API
-- `/send_friend_request` - Send friend request
-- `/respond_friend_request` - Accept/reject requests
-- `/cancel_friend_request` - Cancel sent request
-- `/remove_friend` - Remove existing friend
+### Friends Management (`bp_friends`)
+- `/friends` - Friends management page
+- `/search_users` - User search API (GET)
+- `/send_friend_request` - Send friend request (POST)
+- `/respond_friend_request` - Accept/reject requests (POST)
+- `/cancel_friend_request` - Cancel sent request (POST)
+- `/remove_friend` - Remove existing friend (POST)
+
+### API Endpoints (`bp_friends`)
 - `/api/friends` - Get friends data (JSON)
 - `/api/friend_requests` - Get received requests (JSON)
 - `/api/sent_requests` - Get sent requests (JSON)
-- `/notifications` - Get user notifications
-- `/cleanup_notifications` - Clean stale notifications
+
+### Notifications (`bp_notifications`)
+- `/notifications` - Get user notifications (JSON)
+- `/cleanup_notifications` - Clean stale notifications (POST)
 
 ## Setup & Installation
 
 1. Create virtual environment: `python -m venv venv`
-2. Activate virtual environment: `venv\Scripts\activate` (Windows)
+2. Activate virtual environment: `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Linux/Mac)
 3. Install dependencies: `pip install -r requirements.txt`
-4. Run application: `python main.py`
-5. Access at: `http://localhost:5000`
+4. **Database Setup**: Currently commented out in `main.py` - needs manual initialization
+5. Run application: `python main.py`
+6. Access at: `http://localhost:5000`
 
-## Default Admin Account
-- Username: `admin`
-- Password: `password123`
+## ⚠️ Current Setup Issues
+- Database initialization is commented out in `main.py`
+- No admin user creation on first run
+- Missing `helpers.py` file (referenced in friends.py but doesn't exist)
 
 ## TODO: Next Feature - Chat System
 
