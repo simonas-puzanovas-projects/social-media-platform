@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "index.html" %}
 
 {% block title %}Friends - Social Media Platform{% endblock %}
 
@@ -22,6 +22,24 @@
             </div>
             <div id="friend-requests-list" class="friend-requests-list">
                 <div class="loading">Loading...</div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="openFriendSearch()">Add Friend</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="friendSearchModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Friend</h3>
+            <span class="close" onclick="closeFriendSearch()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="search-container">
+                <input type="text" id="userSearchInput" placeholder="Search for users..." oninput="searchUsers()">
+                <div id="searchResults" class="search-results"></div>
             </div>
         </div>
     </div>

@@ -6,6 +6,24 @@ from .. import db
 
 bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
 
+@bp_friends.route('/friends')
+#@login_required
+def friends():
+    current_user_id = session['user_id']
+    
+    # Get accepted friends
+    friends = get_friends_query(current_user_id).all()
+    
+    # Get received friend requests
+    received_requests = db.session.query(User, Friendship).join(
+        Friendship, User.id == Friendship.requester_id
+    ).filter(
+        Friendship.requested_id == current_user_id,
+        Friendship.status == 'pending'
+    ).all()
+    
+    return render_template('friends.html', friends=friends, received_requests=received_requests)
+
 @bp_friends.route('/search_users')
 #@login_required
 def search_users():

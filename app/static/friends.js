@@ -15,6 +15,109 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+
+// Dashboard JavaScript functionality
+function openFriendSearch() {
+    document.getElementById('friendSearchModal').style.display = 'block';
+    document.getElementById('userSearchInput').focus();
+}
+
+function closeFriendSearch() {
+    document.getElementById('friendSearchModal').style.display = 'none';
+    document.getElementById('userSearchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+}
+
+let searchTimeout;
+
+function searchUsers() {
+    clearTimeout(searchTimeout);
+    const query = document.getElementById('userSearchInput').value.trim();
+    
+    if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetch(`/search_users?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(users => {
+                displaySearchResults(users);
+            })
+            .catch(error => {
+                console.error('Error searching users:', error);
+            });
+    }, 300);
+}
+
+function displaySearchResults(users) {
+    const resultsContainer = document.getElementById('searchResults');
+    
+    if (users.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-result-item no-results">No users found</div>';
+        return;
+    }
+    
+    resultsContainer.innerHTML = users.map(user => {
+        let buttonHtml = '';
+        let statusText = '';
+        
+        switch(user.status) {
+            case 'none':
+                buttonHtml = `<button class="btn btn-secondary btn-sm" onclick="sendFriendRequest(${user.id})">Add Friend</button>`;
+                break;
+            case 'friends':
+                statusText = '<span class="status-badge friends">Friends</span>';
+                break;
+            case 'request_sent':
+                statusText = '<span class="status-badge pending">Request Sent</span>';
+                break;
+            case 'request_received':
+                statusText = '<span class="status-badge received">Request Received</span>';
+                break;
+        }
+        
+        return `
+            <div class="search-result-item">
+                <div class="user-info">
+                    <strong>${user.username}</strong>
+                    ${statusText}
+                </div>
+                <div class="user-actions">
+                    ${buttonHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function sendFriendRequest(userId) {
+    fetch('/send_friend_request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            searchUsers(); // Refresh search results
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending friend request:', error);
+        alert('Error sending friend request');
+    });
+}
+
+// Friends functionality removed from dashboard
+
 function loadFriendsAndSentData() {
     const combinedList = document.getElementById('friends-combined-list');
     const totalCount = document.getElementById('friends-total-count');
@@ -130,7 +233,7 @@ function respondToFriendRequest(friendshipId, response, buttonElement) {
         if (data.success) {
             if (response === 'accept') {
                 // Show success message and refresh both lists
-                showToastMessage('Friend request accepted!');
+                showTsage('Friend request accepted!');
                 loadFriendsAndSentData(); // Refresh combined friends list
                 loadFriendRequestsData(); // Refresh requests list
             } else {
@@ -139,18 +242,18 @@ function respondToFriendRequest(friendshipId, response, buttonElement) {
                 // Update count
                 const requestsCount = document.getElementById('requests-count');
                 requestsCount.textContent = parseInt(requestsCount.textContent) - 1;
-                showToastMessage('Friend request rejected');
+                showTsage('Friend request rejected');
             }
         } else {
             // Re-enable buttons if there was an error
             buttons.forEach(btn => btn.disabled = false);
-            showToastMessage('Error: ' + data.message);
+            showToast('Error: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error responding to friend request:', error);
         buttons.forEach(btn => btn.disabled = false);
-        showToastMessage('Error processing request');
+        showToast('processing request');
     });
 }
 
@@ -176,19 +279,19 @@ function cancelFriendRequest(friendshipId, buttonElement) {
         if (data.success) {
             // Refresh the entire combined list to update counts
             loadFriendsAndSentData();
-            showToastMessage('Friend request cancelled');
+            showToast('Friend request cancelled');
         } else {
             // Re-enable button if there was an error
             button.disabled = false;
             button.textContent = 'Cancel';
-            showToastMessage('Error: ' + data.message);
+            showToast('Error: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error cancelling friend request:', error);
         button.disabled = false;
         button.textContent = 'Cancel';
-        showToastMessage('Error cancelling request');
+        showToast("cancelling request");
     });
 }
 
@@ -219,53 +322,27 @@ function removeFriend(friendUserId, friendUsername, buttonElement) {
         if (data.success) {
             // Refresh the entire combined list to update counts
             loadFriendsAndSentData();
-            showToastMessage(`${friendUsername} removed from friends`);
+            showToast(`${friendUsername} removed from friends`);
         } else {
             // Re-enable button if there was an error
             button.disabled = false;
             button.textContent = 'Remove';
-            showToastMessage('Error: ' + data.message);
+            showToast('Error: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error removing friend:', error);
         button.disabled = false;
         button.textContent = 'Remove';
-        showToastMessage('Error removing friend');
+        showToast("removing friend");
     });
 }
 
-function showToastMessage(message) {
-    // Use the existing toast notification system from base.js if available
-    if (typeof showToast === 'function') {
-        showToast(message);
-    } else {
-        // Fallback toast implementation
-        const toast = document.createElement('div');
-        toast.className = 'toast-message';
-        toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Fade in
-        setTimeout(() => toast.style.opacity = '1', 10);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => document.body.removeChild(toast), 300);
-        }, 3000);
+// Event handlers
+window.onclick = function(event) {
+    const friendSearchModal = document.getElementById('friendSearchModal');
+    
+    if (event.target === friendSearchModal) {
+        closeFriendSearch();
     }
 }

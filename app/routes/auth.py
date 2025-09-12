@@ -5,14 +5,10 @@ from .. import db
 
 bp_auth = Blueprint("bp_auth", __name__, template_folder = "../templates")
 
-@bp_auth.route('/')
-def home():
-    if 'user_id' in session:
-        return render_template('dashboard.html', username=session['username'])
-    return redirect(url_for('bp_auth.login'))
 
 @bp_auth.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -22,10 +18,13 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             session['username'] = user.username
-            return redirect(url_for('bp_auth.home'))
+            return redirect(url_for('bp_index.index'))
         else:
             flash('Invalid username or password!', 'error')
     
+    if 'user_id' in session:
+        return redirect(url_for("bp_index.index"))
+
     return render_template('login.html')
 
 @bp_auth.route('/register', methods=['GET', 'POST'])

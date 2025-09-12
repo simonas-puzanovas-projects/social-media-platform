@@ -11,6 +11,7 @@
     <header>
         <h1>Social Media Platform</h1>
     </header>
+    {% include "toast_notification.html" %}
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -35,11 +36,11 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="{{ url_for('bp_auth.home') }}" class="nav-item">
+                <a href="{{ url_for('bp_index.index') }}" class="nav-item">
                     <span class="nav-icon">🏠</span>
                     <span class="nav-label">Home</span>
                 </a>
-                <a href="{{ url_for('bp_dashboard.friends') }}" class="nav-item">
+                <a href="{{ url_for('bp_friends.friends') }}" class="nav-item">
                     <span class="nav-icon">👥</span>
                     <span class="nav-label">Friends</span>
                 </a>
@@ -79,16 +80,10 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="toast-notification" style="display: none;">
-        <div class="toast-content">
-            <span id="toast-message"></span>
-            <span class="toast-close" onclick="hideToast()">&times;</span>
-        </div>
-    </div>
 
     {% if session.username %}
-    <script src="{{ url_for('static', filename='base.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <script src="{{ url_for('static', filename='toast_notification.js') }}"></script>
     {% endif %}
     
 </body>

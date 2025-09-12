@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+
+{% block title %}Home - Social Media Platform{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-content">
+        <div class="card">
+            <h3>Your Profile</h3>
+            <p><strong>Username:</strong> {{ username }}</p>
+            <p><strong>Status:</strong> Active</p>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='home.js') }}"></script>
+{% endblock %}

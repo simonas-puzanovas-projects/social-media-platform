@@ -6,7 +6,6 @@ from datetime import datetime
 
 @socketio.on('connect')
 def on_connect():
-    print("\nsfgadgaegaegaeg\n")
     if 'user_id' in session:
         user_id = session['user_id']
         join_room(f'user_{user_id}')

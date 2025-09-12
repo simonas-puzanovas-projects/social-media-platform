@@ -1,8 +1,9 @@
-{% extends "base.html" %}
-
-{% block title %}Login - Social Media Platform{% endblock %}
-
 {% block content %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
 <div class="auth-container">
     <div class="auth-toggle">
         <button class="toggle-btn active" onclick="showLogin()">Login</button>
@@ -41,6 +42,7 @@
         </div>
     </div>
 </div>
+</body>
 
 <script src="{{ url_for('static', filename='login.js') }}"></script>
 {% endblock %}

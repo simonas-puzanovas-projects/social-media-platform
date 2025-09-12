@@ -19,12 +19,12 @@ def app_init():
     from . import socket
 
     from .routes import bp_auth
-    from .routes import bp_dashboard
+    from .routes import bp_index
     from .routes import bp_friends
     from .routes import bp_notifications
 
+    app.register_blueprint(bp_index)
     app.register_blueprint(bp_auth)
-    app.register_blueprint(bp_dashboard)
     app.register_blueprint(bp_friends)
     app.register_blueprint(bp_notifications)
 
