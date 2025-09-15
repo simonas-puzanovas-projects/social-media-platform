@@ -29,6 +29,20 @@ class Friendship(db.Model):
     def __repr__(self):
         return f'<Friendship {self.requester_id} -> {self.requested_id} ({self.status})>'
 
+class Messenger(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    second_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    messages = db.relationship("Message", backref='Message.messenger_id')
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    messenger_id = db.Column(db.Integer, db.ForeignKey('messenger.id'))
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

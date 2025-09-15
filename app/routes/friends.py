@@ -1,7 +1,7 @@
 
 from flask import Flask, Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from ..helpers import get_friendship_status, find_friendship, create_notification, clean_notification_data, get_friends_query
-from ..models import User, Friendship, Notification
+from ..models import User, Friendship, Notification, Messenger
 from .. import db
 
 bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
@@ -99,6 +99,14 @@ def respond_friend_request():
         return jsonify({'success': False, 'message': 'Friend request not found'})
     
     if response == 'accept':
+
+        new_messenger = Messenger(
+            id = session['user_id'],
+            first_user_id = current_user_id,
+            second_user_id = friendship.requester_id,
+        )
+        db.session.add(new_messenger)
+
         friendship.status = 'accepted'
         db.session.commit()
         

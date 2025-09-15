@@ -1,0 +1,1 @@
+var current_friend_chat_id = 0

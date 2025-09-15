@@ -22,11 +22,13 @@ def app_init():
     from .routes import bp_index
     from .routes import bp_friends
     from .routes import bp_notifications
+    from .routes import bp_chat
 
     app.register_blueprint(bp_index)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_friends)
     app.register_blueprint(bp_notifications)
+    app.register_blueprint(bp_chat)
 
     return app
     

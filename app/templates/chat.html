@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+
+{%block title%} Chat - Social Media Platform {%endblock%}
+
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+</head>
+
+<body>
+    <div class="chat-container">
+
+        <div class="chat-friends-list" hx-get="/chat/friends_list" hx-trigger="load">
+            loading user list
+        </div>
+
+        <div class="chat-chat-container" id="chat">
+        </div>
+
+    </div>
+</body>
+
+
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+{% endblock %}
