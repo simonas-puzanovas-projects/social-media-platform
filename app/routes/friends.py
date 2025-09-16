@@ -83,7 +83,6 @@ def send_friend_request():
     return jsonify({'success': True, 'message': 'Friend request sent!'})
 
 @bp_friends.route('/respond_friend_request', methods=['POST'])
-#@login_required
 def respond_friend_request():
     friendship_id = request.json.get('friendship_id')
     response = request.json.get('response')
@@ -101,13 +100,14 @@ def respond_friend_request():
     if response == 'accept':
 
         new_messenger = Messenger(
-            id = session['user_id'],
-            first_user_id = current_user_id,
+            first_user_id = friendship.requested_id,
             second_user_id = friendship.requester_id,
         )
-        db.session.add(new_messenger)
+
 
         friendship.status = 'accepted'
+        db.session.commit()
+        db.session.add(new_messenger)
         db.session.commit()
         
         # Notify the requester that their request was accepted
@@ -142,7 +142,6 @@ def respond_friend_request():
     return jsonify({'success': False, 'message': 'Invalid response'})
 
 @bp_friends.route('/cancel_friend_request', methods=['POST'])
-#@login_required
 def cancel_friend_request():
     friendship_id = request.json.get('friendship_id')
     current_user_id = session['user_id']

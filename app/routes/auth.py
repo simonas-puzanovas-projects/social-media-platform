@@ -44,7 +44,7 @@ def register():
         db.session.commit()
         
         flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('bp_auth.login'))
     
     return render_template('login.html')
 

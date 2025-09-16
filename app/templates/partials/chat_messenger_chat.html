@@ -1,6 +1,18 @@
+<div class="chat-messages-container">
+    {{username}}
+    <div class="chat-messages" id="chat-messages">
+        {% for message in messages%}
+            <h3>
+                {{message.sender}}: {{message.content}} 
+            </h3>
+        {%endfor%}
+    </div>
+</div>
 
-<div class="chat-messages">{{username}}</div>
-<div class="chat-input-container">
-    <input>
+<div class="chat-input-container" >
+    <form hx-post="/chat/send_message" hx-target="#chat-messages" hx-swap="beforeend" hx-vals='{"friend_username": "{{username}}"}'>
+        <input name="content"/ required>
+        <button>SEND</button>
+    </form>
 </div>
 
