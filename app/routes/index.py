@@ -7,6 +7,10 @@ bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 @bp_index.route('/')
 def index():
     if 'user_id' in session:
-        if db.session.query(User).filter(session["user_id"] == User.id):
+        user = User.query.filter_by(id=session["user_id"]).first()
+        if user:
             return render_template('home.html', username=session['username'])
+        else:
+            session.clear()
+
     return redirect(url_for('bp_auth.login'))

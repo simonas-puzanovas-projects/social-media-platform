@@ -86,7 +86,7 @@ def open_chat(username):
 
             else: print("friends name not found")
 
-        return render_template("partials/chat_messenger_chat.html", username = username, messages = json_data)
+        return render_template("partials/chat_messenger.html", username = username, messages = json_data)
     print("not found")
 
 

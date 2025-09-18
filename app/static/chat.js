@@ -1,17 +1,38 @@
 var current_chat_friend_name = null
 
 function createMessageHTML(message) {
-    const isCurrentUser = message.sender === current_chat_friend_name;
-    const color = isCurrentUser ? 'orange' : 'yellow';
-    const align = isCurrentUser ? 'right' : 'left';
+    const is_friend = message.sender === current_chat_friend_name;
 
-    return `
-        <div>
-            <h3 class="message-text" style="color: ${color}; text-align: ${align};">
-                ${message.sender}: ${message.content}
-            </h3>
-        </div>
-    `;
+    if (is_friend){
+        return `
+            <div class="message-container-right">
+                <h3 class="message-text">
+                    ${message.sender}: ${message.content} 
+                </h3>
+            </div>
+        `;
+    }
+
+    else{
+        return `
+            <div class="message-container-left">
+                <h3 class="message-text">
+                    ${message.sender}: ${message.content} 
+                </h3>
+            </div>
+        `;
+
+    }
+}
+
+function messenger_scroll_down(){
+    setTimeout(function() {
+        const messages_element = document.getElementsByClassName("messenger-messages")[0];
+        messages_element.scrollTo({
+            top: messages_element.scrollHeight,
+            behavior: 'smooth'
+        })
+    },100)
 }
 
 function init_chat_socket(){
@@ -20,7 +41,8 @@ function init_chat_socket(){
             
             if (data.sender === current_chat_friend_name) {
                 const messageHTML = createMessageHTML(data);
-                document.getElementById('chat-messages').insertAdjacentHTML('beforeend', messageHTML);
+                document.getElementById('messenger-messages').insertAdjacentHTML('beforeend', messageHTML);
+                messenger_scroll_down();
             }
         });
     }

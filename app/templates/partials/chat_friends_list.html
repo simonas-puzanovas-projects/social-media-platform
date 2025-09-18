@@ -1,8 +1,7 @@
 <div class="chat-friends-list-item">
 {% for friend in friends %}
-    <h3 hx-get="/chat/open/{{friend.username}}" hx-trigger="click" hx-target="#chat">
-    {{friend.username}}
-
+    <h3 hx-get="/chat/open/{{friend.username}}" hx-trigger="click" hx-target="#messenger">
+        {{friend.username}}
     </h3>
 {%endfor%}
 </div>

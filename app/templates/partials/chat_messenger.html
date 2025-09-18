@@ -1,0 +1,20 @@
+<div class="messenger-messages" id="messenger-messages">
+    {% for message in messages%}
+        {%include 'partials/message.html'%}
+    {%endfor%}
+</div>
+
+<div class="chat-input-container" >
+    <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus();" hx-on:submit="messenger_scroll_down();" hx-target="#messenger-messages" hx-swap="beforeend" hx-vals='{"friend_username": "{{username}}"}'>
+        <input name="content" autocomplete="off"/ required>
+        <button>SEND</button>
+    </form>
+</div>
+
+
+<script>
+    current_chat_friend_name = "{{username}}";
+
+    messenger_scroll_down();
+ 
+</script>

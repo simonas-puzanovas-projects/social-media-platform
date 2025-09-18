@@ -1,3 +1,15 @@
-<h3>
-    {{message.sender}}: {{message.content}} 
-</h3>
+{%block content%}
+    {% if message.sender == username%}
+        <div class="message-container-right">
+            <h3 class="message-text">
+                {{message.sender}}: {{message.content}} 
+            </h3>
+        </div>
+    {%else%}
+        <div class="message-container-left">
+            <h3 class="message-text">
+                {{message.sender}}: {{message.content}} 
+            </h3>
+        </div>
+    {%endif%}
+{%endblock%}
