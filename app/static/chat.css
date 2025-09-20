@@ -53,15 +53,18 @@
 }
 .message-text{
     padding: 5px;
+    word-wrap: break-word;
 
 }
 .message-container-right{
     align-self: flex-end;
     background-color: rgba(226, 43, 67, 0.411);
+    max-width: 80%;
 }
 .message-container-left{
     align-self: flex-start;
     background-color: rgba(137, 43, 226, 0.411);
+    max-width: 80%;
 
 }
 .chat-input-container{
@@ -105,6 +108,7 @@
                 inset 0 1px 0 rgba(223, 145, 205, 0.308);
     font-weight: 500;
     letter-spacing: 0.01em;
+    word-wrap: break-word;
 }
 
 .chat-input-container input:focus {

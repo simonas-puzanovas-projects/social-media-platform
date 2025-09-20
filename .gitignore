@@ -65,3 +65,15 @@ flask_session/
 *.tmp
 *.bak
 *.orig
+
+# Uploads
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# Application logs
+app.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

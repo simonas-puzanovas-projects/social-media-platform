@@ -1,13 +1,14 @@
 
-from flask import Flask, Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from ..helpers import get_friendship_status, find_friendship, create_notification, clean_notification_data, get_friends_query
 from ..models import User, Friendship, Notification, Messenger
+from ..decorators import login_required
 from .. import db
 
 bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
 
 @bp_friends.route('/friends')
-#@login_required
+@login_required
 def friends():
     current_user_id = session['user_id']
     
@@ -25,7 +26,7 @@ def friends():
     return render_template('friends.html', friends=friends, received_requests=received_requests)
 
 @bp_friends.route('/search_users')
-#@login_required
+@login_required
 def search_users():
     query = request.args.get('q', '')
     if len(query) < 2:
@@ -50,7 +51,7 @@ def search_users():
     return jsonify(results)
 
 @bp_friends.route('/send_friend_request', methods=['POST'])
-#@login_required
+@login_required
 def send_friend_request():
     requested_user_id = request.json.get('user_id')
     current_user_id = session['user_id']
@@ -83,6 +84,7 @@ def send_friend_request():
     return jsonify({'success': True, 'message': 'Friend request sent!'})
 
 @bp_friends.route('/respond_friend_request', methods=['POST'])
+@login_required
 def respond_friend_request():
     friendship_id = request.json.get('friendship_id')
     response = request.json.get('response')
@@ -142,6 +144,7 @@ def respond_friend_request():
     return jsonify({'success': False, 'message': 'Invalid response'})
 
 @bp_friends.route('/cancel_friend_request', methods=['POST'])
+@login_required
 def cancel_friend_request():
     friendship_id = request.json.get('friendship_id')
     current_user_id = session['user_id']
@@ -173,7 +176,7 @@ def cancel_friend_request():
     return jsonify({'success': True, 'message': 'Friend request cancelled'})
 
 @bp_friends.route('/remove_friend', methods=['POST'])
-#@login_required
+@login_required
 def remove_friend():
     friend_user_id = request.json.get('friend_user_id')
     current_user_id = session['user_id']
@@ -198,7 +201,7 @@ def remove_friend():
 # ============================================================================
 
 @bp_friends.route('/api/friends')
-#@login_required
+@login_required
 def get_friends_data():
     current_user_id = session['user_id']
     
@@ -217,7 +220,7 @@ def get_friends_data():
     return jsonify(friends_data)
 
 @bp_friends.route('/api/friend_requests')
-#@login_required
+@login_required
 def get_friend_requests_data():
     current_user_id = session['user_id']
     
@@ -241,7 +244,7 @@ def get_friend_requests_data():
     return jsonify(requests_data)
 
 @bp_friends.route('/api/sent_requests')
-#@login_required
+@login_required
 def get_sent_requests_data():
     current_user_id = session['user_id']
     

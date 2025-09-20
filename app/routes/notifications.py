@@ -1,12 +1,13 @@
 from flask import jsonify, Blueprint, session
 from ..models import Notification, Friendship
 from ..helpers import clean_notification_data
+from ..decorators import login_required
 from .. import db
 
 bp_notifications = Blueprint("bp_notifications", __name__)
 
 @bp_notifications.route('/notifications')
-#@login_required
+@login_required
 def get_notifications():
     current_user_id = session['user_id']
     notifications = Notification.query.filter_by(user_id=current_user_id).order_by(
@@ -52,7 +53,7 @@ def get_notifications():
     return jsonify([notification.to_dict() for notification in valid_notifications])
 
 @bp_notifications.route('/cleanup_notifications', methods=['POST'])
-#@login_required
+@login_required
 def cleanup_notifications():
     """Clean up all stale friend request notifications for the current user"""
     current_user_id = session['user_id']

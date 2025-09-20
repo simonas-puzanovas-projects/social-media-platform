@@ -314,3 +314,196 @@ window.addEventListener('resize', function() {
         }
     }
 });
+
+// Image Upload Functions
+function toggleImageUpload() {
+    const container = document.querySelector('.image-upload-container');
+    if (container.style.display === 'none' || container.style.display === '') {
+        openImageUpload();
+    } else {
+        closeImageUpload();
+    }
+}
+
+function openImageUpload() {
+    const container = document.querySelector('.image-upload-container');
+    container.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    if (isMobile()) {
+        container.classList.add('mobile-mode');
+    } else {
+        container.classList.add('desktop-mode');
+    }
+}
+
+function closeImageUpload() {
+    const container = document.querySelector('.image-upload-container');
+    const content = container.querySelector('.image-upload-content');
+
+    container.classList.add('closing');
+    if (content) {
+        content.classList.add('closing');
+    }
+
+    setTimeout(() => {
+        container.classList.remove('mobile-mode', 'desktop-mode', 'closing');
+        if (content) {
+            content.classList.remove('closing');
+        }
+        container.style.display = 'none';
+        document.body.style.overflow = '';
+        clearPreview();
+    }, 300);
+}
+
+// File Upload Functionality
+let selectedFile = null;
+
+// Initialize file upload handlers when DOM loads
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const uploadZone = document.querySelector('.upload-zone');
+    const imageUploadContainer = document.querySelector('.image-upload-container');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
+
+    if (uploadZone) {
+        uploadZone.addEventListener('dragover', handleDragOver);
+        uploadZone.addEventListener('dragleave', handleDragLeave);
+        uploadZone.addEventListener('drop', handleFileDrop);
+    }
+
+    // Close image upload when clicking outside
+    if (imageUploadContainer) {
+        imageUploadContainer.addEventListener('click', function(event) {
+            if (event.target === imageUploadContainer) {
+                closeImageUpload();
+            }
+        });
+    }
+
+    // Close image upload with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const container = document.querySelector('.image-upload-container');
+            if (container && container.style.display === 'flex') {
+                closeImageUpload();
+            }
+        }
+    });
+});
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        selectedFile = file;
+        showImagePreview(file);
+    } else {
+        showToast('Please select a valid image file');
+    }
+}
+
+function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.style.borderColor = '#764ba2';
+    event.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
+}
+
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.style.borderColor = '#667eea';
+    event.currentTarget.style.background = 'rgba(102, 126, 234, 0.05)';
+}
+
+function handleFileDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const uploadZone = event.currentTarget;
+    uploadZone.style.borderColor = '#667eea';
+    uploadZone.style.background = 'rgba(102, 126, 234, 0.05)';
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+            selectedFile = file;
+            showImagePreview(file);
+        } else {
+            showToast('Please drop a valid image file');
+        }
+    }
+}
+
+function showImagePreview(file) {
+    const uploadArea = document.querySelector('.upload-area');
+    const imagePreview = document.querySelector('.image-preview');
+    const previewImage = document.getElementById('preview-image');
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        uploadArea.style.display = 'none';
+        imagePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearPreview() {
+    const uploadArea = document.querySelector('.upload-area');
+    const imagePreview = document.querySelector('.image-preview');
+    const fileInput = document.getElementById('file-input');
+    const previewImage = document.getElementById('preview-image');
+
+    if (uploadArea) uploadArea.style.display = 'block';
+    if (imagePreview) imagePreview.style.display = 'none';
+    if (fileInput) fileInput.value = '';
+    if (previewImage) previewImage.src = '';
+    selectedFile = null;
+}
+
+function uploadImage() {
+    if (!selectedFile) {
+        showToast('No image selected');
+        return;
+    }
+
+    // Show loading state
+    const uploadBtn = document.querySelector('.preview-actions .btn-primary');
+    const originalText = uploadBtn.textContent;
+    uploadBtn.textContent = 'Uploading...';
+    uploadBtn.disabled = true;
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+
+
+    // Uncomment when backend endpoint exists:
+    fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Image uploaded successfully!');
+            closeImageUpload();
+        } else {
+            showToast('Upload failed: ' + data.message);
+        }
+        uploadBtn.textContent = originalText;
+        uploadBtn.disabled = false;
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        showToast('Upload failed. Please try again.');
+        uploadBtn.textContent = originalText;
+        uploadBtn.disabled = false;
+    });
+}

@@ -16,8 +16,6 @@ def on_connect():
             user.is_online = True
             user.last_seen = datetime.utcnow()
             db.session.commit()
-        
-        print(f'User {user_id} connected')
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -31,5 +29,3 @@ def on_disconnect():
             user.is_online = False
             user.last_seen = datetime.utcnow()
             db.session.commit()
-        
-        print(f'User {user_id} disconnected')
