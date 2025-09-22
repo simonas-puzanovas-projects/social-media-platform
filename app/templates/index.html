@@ -6,6 +6,7 @@
     <title>{% block title %}Social Media Platform{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload_image.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
 </head>
 <body>
@@ -14,16 +15,6 @@
     </header>
     {% include "toast_notification.html" %}
     
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
     <div class="image-upload-container" style="display: none;">
         <div class="image-upload-content">
             <div class="image-upload-header">
@@ -54,12 +45,12 @@
         {% if session.username %}
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="user-profile">
+                <a href="{{ url_for('bp_index.profile', username=session.username)}}" class="user-profile">
                     <div class="user-avatar">👤</div>
                     <div class="user-info">
                         <span class="username">{{ session.username }}</span>
                     </div>
-                </div>
+                </a>
             </div>
             
             <nav class="sidebar-nav">

@@ -143,7 +143,9 @@ function loadFriendsAndSentData() {
             html += `
                 <div class="friend-item">
                     <div class="friend-info">
-                        <strong>${friend.username}</strong>
+                        <a href="/profile/${friend.username}" class="friend-name-link">
+                            <strong>${friend.username}</strong>
+                        </a>
                         <span class="status-badge ${friend.is_online ? 'online' : 'offline'}">
                             ${friend.is_online ? 'Online' : 'Offline'}
                         </span>
@@ -233,7 +235,7 @@ function respondToFriendRequest(friendshipId, response, buttonElement) {
         if (data.success) {
             if (response === 'accept') {
                 // Show success message and refresh both lists
-                showTsage('Friend request accepted!');
+                showToast('Friend request accepted!');
                 loadFriendsAndSentData(); // Refresh combined friends list
                 loadFriendRequestsData(); // Refresh requests list
             } else {
@@ -242,7 +244,7 @@ function respondToFriendRequest(friendshipId, response, buttonElement) {
                 // Update count
                 const requestsCount = document.getElementById('requests-count');
                 requestsCount.textContent = parseInt(requestsCount.textContent) - 1;
-                showTsage('Friend request rejected');
+                showToast('Friend request rejected');
             }
         } else {
             // Re-enable buttons if there was an error
@@ -253,7 +255,7 @@ function respondToFriendRequest(friendshipId, response, buttonElement) {
     .catch(error => {
         console.error('Error responding to friend request:', error);
         buttons.forEach(btn => btn.disabled = false);
-        showToast('processing request');
+        showToast('Error processing request');
     });
 }
 
@@ -291,7 +293,7 @@ function cancelFriendRequest(friendshipId, buttonElement) {
         console.error('Error cancelling friend request:', error);
         button.disabled = false;
         button.textContent = 'Cancel';
-        showToast("cancelling request");
+        showToast('Error cancelling request');
     });
 }
 
@@ -334,7 +336,7 @@ function removeFriend(friendUserId, friendUsername, buttonElement) {
         console.error('Error removing friend:', error);
         button.disabled = false;
         button.textContent = 'Remove';
-        showToast("removing friend");
+        showToast('Error removing friend');
     });
 }
 

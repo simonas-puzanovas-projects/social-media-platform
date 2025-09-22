@@ -1,0 +1,477 @@
+/*
+==================================================
+  LOGIN & AUTHENTICATION STYLES
+==================================================
+  Contains all styles specific to login/register pages
+==================================================
+*/
+
+/* CSS Custom Properties for Login */
+:root {
+  /* Login-specific colors */
+  --login-primary: #667eea;
+  --login-primary-dark: #764ba2;
+  --login-secondary: #f093fb;
+  --login-secondary-dark: #f5576c;
+
+  /* Login gradients */
+  --login-gradient-primary: linear-gradient(135deg, var(--login-primary) 0%, var(--login-primary-dark) 100%);
+  --login-gradient-secondary: linear-gradient(135deg, var(--login-secondary) 0%, var(--login-secondary-dark) 100%);
+  --login-gradient-bg: linear-gradient(135deg, var(--login-primary) 0%, var(--login-primary-dark) 100%);
+
+  /* Login spacing */
+  --login-container-padding: 2rem 1rem;
+  --login-form-padding: 2.5rem 3rem;
+  --login-form-gap: 1.2rem;
+
+  /* Login animations */
+  --login-transition: all 0.3s ease;
+  --login-transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Login Page Background */
+body.login-page {
+  background: var(--login-gradient-bg);
+  min-height: 100vh;
+}
+
+/* Auth Container */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  min-height: calc(100vh - 120px);
+  padding: var(--login-container-padding);
+  justify-content: flex-start;
+  padding-top: 15vh;
+}
+
+/* Auth Toggle Buttons */
+.auth-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  padding: 4px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 26px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--login-transition);
+  font-size: 1rem;
+}
+
+.toggle-btn.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-btn:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+/* Auth Forms Container */
+.auth-forms {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  padding: var(--login-form-padding);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  min-width: 400px;
+  min-height: 380px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Form Sections */
+.form-section {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateX(30px);
+  width: calc(100% - 6rem);
+  opacity: 0;
+  transition: var(--login-transition-smooth);
+  pointer-events: none;
+}
+
+.form-section.active {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.form-section h2 {
+  color: #333;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 300;
+  font-size: 1.5rem;
+}
+
+/* Auth Forms */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-form-gap);
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input {
+  padding: 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: var(--login-transition);
+  caret-color: #333;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--login-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Login Buttons */
+.auth-form .btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--login-transition);
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.auth-form .btn-primary {
+  background: var(--login-gradient-primary);
+  color: white;
+}
+
+.auth-form .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.auth-form .btn-secondary {
+  background: var(--login-gradient-secondary);
+  color: white;
+}
+
+.auth-form .btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+}
+
+/* Error States */
+.form-group.error input {
+  border-color: #f44336;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.form-error-message {
+  color: #f44336;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.form-group.error .form-error-message {
+  display: block;
+}
+
+/* Loading States */
+.auth-form .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-form .btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.auth-form .btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Remember Me & Links */
+.form-extras {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+}
+
+.remember-me input[type="checkbox"] {
+  margin: 0;
+  padding: 0;
+  width: auto;
+}
+
+.forgot-password {
+  color: var(--login-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: var(--login-transition);
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+  color: var(--login-primary-dark);
+}
+
+/* Social Login Buttons */
+.social-login {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.social-login-title {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.social-login-title::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.social-login-title span {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.social-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--login-transition);
+}
+
+.social-btn:hover {
+  border-color: #ccc;
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.social-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem;
+    padding-top: 10vh;
+    gap: 1.5rem;
+  }
+
+  .auth-forms {
+    padding: 2rem;
+    min-width: 300px;
+    min-height: 320px;
+  }
+
+  .form-section {
+    width: calc(100% - 4rem);
+  }
+
+  .toggle-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .form-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-form {
+    gap: 1rem;
+  }
+
+  .form-group input {
+    padding: 0.75rem;
+  }
+
+  .auth-form .btn {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .social-buttons {
+    flex-direction: column;
+  }
+
+  .form-extras {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 0.5rem;
+    padding-top: 8vh;
+  }
+
+  .auth-forms {
+    padding: 1.5rem;
+    min-width: 280px;
+    border-radius: 15px;
+  }
+
+  .form-section {
+    width: calc(100% - 3rem);
+  }
+
+  .toggle-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .toggle-btn,
+  .form-group input,
+  .auth-form .btn,
+  .form-section,
+  .social-btn {
+    transition: none;
+  }
+
+  .auth-form .btn.loading::after {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .auth-toggle {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+  }
+
+  .toggle-btn {
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .toggle-btn.active {
+    background: white;
+    color: black;
+    border: 2px solid black;
+  }
+
+  .auth-forms {
+    background: white;
+    border: 2px solid black;
+  }
+
+  .form-group input {
+    border: 2px solid black;
+  }
+
+  .form-group input:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+  }
+}
+
+/* Print styles */
+@media print {
+  .auth-container {
+    background: white;
+  }
+
+  .auth-toggle,
+  .social-login {
+    display: none;
+  }
+
+  .auth-forms {
+    box-shadow: none;
+    background: white;
+    border: 1px solid black;
+  }
+}

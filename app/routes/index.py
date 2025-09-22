@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify, flash
+from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
 from werkzeug.utils import secure_filename
 import os
 import uuid
@@ -21,11 +21,30 @@ def index():
                              .limit(50)\
                              .all()
 
-            return render_template('home.html', username=session['username'], posts=posts)
+            return render_template('posts.html', username=session['username'], posts=posts)
         else:
             session.clear()
 
     return redirect(url_for('bp_auth.login'))
+
+
+@bp_index.route('/profile/<username>')
+def profile(username):
+    user = User.query.filter_by(username=username).first()
+    if user:
+        # Get all posts for this user with eager loading to avoid N+1 queries
+        posts = db.session.query(Post, User.username)\
+                          .join(User, Post.owner == User.id)\
+                          .filter(User.username == username)\
+                          .order_by(Post.created_at.desc())\
+                          .limit(50)\
+                          .all()
+
+        return render_template('posts.html', username=session['username'], posts=posts, profile_user=username)
+    else:
+        # User not found, redirect to 404 or home
+        return redirect(url_for('bp_index.index'))
+
 
 @bp_index.route('/upload_image', methods=['POST'])
 @login_required

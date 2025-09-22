@@ -1,4 +1,4 @@
-// Home page JavaScript functionality
+// Posts page JavaScript functionality
 
 // Delete post function
 function deletePost(postId) {

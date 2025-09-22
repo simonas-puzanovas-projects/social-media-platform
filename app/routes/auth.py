@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, session, flash
+from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..models import User
 from .. import db
@@ -19,7 +19,7 @@ def login():
             session['username'] = user.username
             return redirect(url_for('bp_index.index'))
         else:
-            flash('Invalid username or password!', 'error')
+            return jsonify({'success': False, 'message': 'Invalid username or password!'})
     
     if 'user_id' in session:
         return redirect(url_for("bp_index.index"))
@@ -33,8 +33,7 @@ def register():
         password = request.form['password']
         
         if User.query.filter_by(username=username).first():
-            flash('Username already exists!', 'error')
-            return render_template('login.html')
+            return jsonify({'success': False, 'message': 'Username already exists!'})
         
         password_hash = generate_password_hash(password)
         new_user = User(username=username, password_hash=password_hash)
@@ -42,7 +41,6 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('bp_auth.login'))
     
     return render_template('login.html')
