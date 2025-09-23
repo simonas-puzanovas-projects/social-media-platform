@@ -73,8 +73,8 @@ def open_chat(username):
             friend_id = friend.id
 
     messenger = db.session.query(Messenger).filter(
-        ((current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id)) |
-        ((friend_id == Messenger.first_user_id) & (current_user_id == Messenger.second_user_id))
+        (current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id) |
+        (friend_id == Messenger.first_user_id) & (current_user_id == Messenger.second_user_id)
         ).first()
     
     if messenger:
@@ -86,9 +86,9 @@ def open_chat(username):
                                        .all()
 
         json_data = []
-        for message, username in messages_with_users:
+        for message, sender_username in messages_with_users:
             json_data.append({
-                "sender": username,
+                "sender": sender_username,
                 "content": message.content
             })
 

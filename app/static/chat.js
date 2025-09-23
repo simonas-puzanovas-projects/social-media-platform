@@ -47,7 +47,7 @@ function init_chat_socket(){
         });
     }
     else{
-        setTimeout(init_chat_socket, 50)
+        setTimeout(init_chat_socket, 100)
     }
 }
 

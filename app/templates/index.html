@@ -3,116 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>{% block title %}Social Media Platform{% endblock %}</title>
+
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='upload_image.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
-</head>
-<body>
-    <header>
-        <h1>Social Media Platform</h1>
-    </header>
-    {% include "toast_notification.html" %}
-    
-    <div class="image-upload-container" style="display: none;">
-        <div class="image-upload-content">
-            <div class="image-upload-header">
-                <h3>Upload Image</h3>
-                <span class="close-image-upload" onclick="closeImageUpload()">&times;</span>
-            </div>
-            <div class="image-upload-body">
-                <div class="upload-area">
-                    <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-                        <div class="upload-icon">📷</div>
-                        <p>Click to upload an image</p>
-                        <p class="upload-hint">or drag and drop</p>
-                    </div>
-                    <input type="file" id="file-input" accept="image/*" style="display: none;">
-                </div>
-                <div class="image-preview" style="display: none;">
-                    <img id="preview-image" src="" alt="Preview">
-                    <div class="preview-actions">
-                        <button class="btn btn-primary" onclick="uploadImage()">Upload</button>
-                        <button class="btn btn-secondary" onclick="clearPreview()">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="{% if session.username %}app-container{% endif %}">
-        {% if session.username %}
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <a href="{{ url_for('bp_index.profile', username=session.username)}}" class="user-profile">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-info">
-                        <span class="username">{{ session.username }}</span>
-                    </div>
-                </a>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('bp_index.index') }}" class="nav-item">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-label">Home</span>
-                </a>
-                <a href="{{ url_for('bp_friends.friends') }}" class="nav-item">
-                    <span class="nav-icon">👥</span>
-                    <span class="nav-label">Friends</span>
-                </a>
-                <a href="{{ url_for('bp_chat.chat') }}" class="nav-item">
-                    <span class="nav-icon">💬</span>
-                    <span class="nav-label">Messages</span>
-                </a>
-                <div class="nav-item notification-item" onclick="toggleNotifications()">
-                    <span class="nav-icon">🔔</span>
-                    <span class="nav-label">Notifications</span>
-                    <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
-                </div>
-                <div class="nav-item", onclick="toggleImageUpload()">
-                    <span class="nav-icon">🖼️</span>
-                    <span class="nav-label">Upload Image</span>
-                    <span id="_image-upload-badge" class="notification-badge" style="display: none;">0</span>
-
-                </div>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <a href="{{ url_for('bp_auth.logout') }}" class="nav-item logout-item">
-                    <span class="nav-icon">🚪</span>
-                    <span class="nav-label">Logout</span>
-                </a>
-            </div>
-        </aside>
-        {% endif %}
-        
-        <main class="main-content{% if not session.username %} no-sidebar{% endif %}">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
-    
-    <!-- Notification Window -->
-    <div id="notification-window" class="notification-window" style="display: none;">
-        <div class="notification-window-content">
-            <div class="notification-window-header">
-                <h3>Notifications</h3>
-                <span class="close-notification-window" onclick="closeNotificationWindow()">&times;</span>
-            </div>
-            <div class="notification-window-body">
-                <div id="notification-list" class="notification-list">
-                    <!-- Notifications will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    {% if session.username %}
     <script src="{{ url_for('static', filename='index.js') }}"></script>
-    <script src="{{ url_for('static', filename='toast_notification.js') }}"></script>
-    {% endif %}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header> <h1>Social Media Platform</h1> </header>
+
+    {% extends "sidebar.html" %}
+    {% include "toast_notification.html" %}
+    {% include "upload_image.html" %}
+    {% include "notification_window.html" %}
     
 </body>
+
 </html>
