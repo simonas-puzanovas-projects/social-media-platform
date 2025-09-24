@@ -139,12 +139,14 @@ header h1 {
     }
     
     .sidebar {
+        top:auto;
+        bottom: 0px;
         width: 100%;
         height: auto;
-        position: static;
-        order: 2;
         border-right: none;
         border-top: 1px solid rgba(0, 0, 0, 0.1);
+        position: fixed;
+        z-index: 999999;
     }
     
     .sidebar-header {
@@ -166,6 +168,7 @@ header h1 {
         flex-direction: row;
         overflow-x: auto;
         padding: 0.5rem 0;
+        justify-content: center;
     }
     
     .nav-item {

@@ -3,9 +3,10 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from PIL import Image
-from .. import db
+from .. import db, socketio
 from ..models import User, Post
 from ..decorators import login_required
+from ..helpers import get_friends_query
 
 bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 
@@ -27,7 +28,6 @@ def index():
 
     return redirect(url_for('bp_auth.login'))
 
-
 @bp_index.route('/profile/<username>')
 def profile(username):
     user = User.query.filter_by(username=username).first()
@@ -40,7 +40,7 @@ def profile(username):
                           .limit(50)\
                           .all()
 
-        return render_template('posts.html', username=session['username'], posts=posts, profile_user=username)
+        return render_template('posts.html', username=session['username'], posts=posts, profile_user = username)
     else:
         # User not found, redirect to 404 or home
         return redirect(url_for('bp_index.index'))
@@ -98,6 +98,14 @@ def upload_image():
         )
         db.session.add(new_post)
         db.session.commit()
+
+        friends_query = get_friends_query(user.id).all()
+        post_data = db.session.query(Post, User.username)\
+                            .join(User, Post.id == new_post.id)\
+                            .first()
+
+        for friend, _friendship in friends_query:
+            socketio.emit("new_post", render_template("partials/post.html", post_data=post_data), room=f'user_{friend.id}')
 
         return jsonify({
             'success': True,

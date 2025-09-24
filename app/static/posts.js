@@ -1,6 +1,19 @@
-// Posts page JavaScript functionality
+var profile_user = null
 
-// Delete post function
+function init_posts_socket(){
+    if (typeof socket !== 'undefined') {
+
+        socket.on('new_post', function(html) {
+            var element = document.getElementsByClassName("posts-grid")[0] 
+            element.insertAdjacentHTML("afterbegin", html)
+        });
+    }
+    else{
+        setTimeout(init_posts_socket, 100)
+    }
+}
+init_posts_socket()
+
 function deletePost(postId) {
     if (!confirm('Are you sure you want to delete this post?')) {
         return;
@@ -33,11 +46,3 @@ function deletePost(postId) {
         showToast('Error deleting post');
     });
 }
-
-// Auto-refresh posts every 30 seconds
-setInterval(() => {
-    // Only refresh if user is still on the page and not interacting
-    if (document.visibilityState === 'visible') {
-        location.reload();
-    }
-}, 30000);

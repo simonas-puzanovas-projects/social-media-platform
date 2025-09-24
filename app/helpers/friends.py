@@ -26,11 +26,6 @@ def get_friendship_status(current_user_id, other_user_id):
 
 def get_friends_query(current_user_id):
     """Get query for accepted friends of current user"""
-    return db.session.query(User, Friendship).join(
-        Friendship,
-        (User.id == Friendship.requester_id) | (User.id == Friendship.requested_id)
-    ).filter(
-        Friendship.status == 'accepted',
-        ((Friendship.requester_id == current_user_id) | (Friendship.requested_id == current_user_id)),
-        User.id != current_user_id
-    )
+    return db.session.query(User, Friendship).join( Friendship, (User.id == Friendship.requester_id) | (User.id == Friendship.requested_id)
+        ).filter( Friendship.status == 'accepted', ((Friendship.requester_id == current_user_id) | (Friendship.requested_id == current_user_id)),
+        User.id != current_user_id)

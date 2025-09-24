@@ -77,3 +77,6 @@ app.log
 .pytest_cache/
 .coverage
 htmlcov/
+
+#personal
+TODO

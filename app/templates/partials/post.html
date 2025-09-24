@@ -1,0 +1,143 @@
+
+{%block content%}
+
+<style>
+    .post-item {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .post-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .author-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .post-time {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-delete {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+    .btn-delete:hover {
+        background: rgba(244, 67, 54, 0.1);
+        transform: scale(1.1);
+    }
+
+    .post-content {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .post-image {
+        width: 100%;
+        height: auto;
+        max-height: 500px;
+        object-fit: contain;
+        display: block;
+        transition: transform 0.3s ease;
+        background-color: #0c002d23;
+    }
+
+
+    .post-footer {
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .post-stats {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .post-likes, .post-comments {
+        font-size: 0.9rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+</style>
+
+{% set post = post_data[0] %}
+{% set username = post_data[1] %}
+
+<div class="post-item" data-post-id="{{ post.id }}">
+    <div class="post-header">
+        <div class="post-author">
+            <div class="author-avatar">👤</div>
+            <div class="author-info">
+                <span class="author-name">{{ username }}</span>
+                <span class="post-time">{{ post.created_at.strftime('%B %d, %Y') }}</span>
+            </div>
+        </div>
+        {% if post.owner == session.user_id %}
+        <div class="post-actions">
+            <button class="btn-delete" onclick="deletePost({{ post.id }})" title="Delete Post">🗑️</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="post-content">
+        <img src="{{ url_for('static', filename=post.image_path) }}" alt="Post image" class="post-image">
+    </div>
+
+    <div class="post-footer">
+        <div class="post-stats">
+            <span class="post-likes">❤️ 0</span>
+            <span class="post-comments">💬 0</span>
+        </div>
+    </div>
+</div>
+{%endblock%}

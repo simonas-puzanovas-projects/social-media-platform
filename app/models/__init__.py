@@ -49,9 +49,17 @@ class Post(db.Model):
     image_path = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Add relationship to User
     owner_user = db.relationship('User', backref=db.backref('posts', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'owner_id': self.owner,
+            'owner_name': self.owner_user.username,
+            'image_path': self.image_path,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
