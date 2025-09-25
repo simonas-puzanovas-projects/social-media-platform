@@ -2,7 +2,6 @@
 
 {%block title%} Chat - Social Media Platform {%endblock%}
 
-
 {% block content %}
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
@@ -10,9 +9,11 @@
 </head>
 
 <body>
+
+
     <div class="chat-container">
 
-        <div class="chat-friends-list" hx-get="/chat/friends_list" hx-trigger="load">
+        <div id="chat-friends-list" class="chat-friends-list" hx-get="/chat/friends_list" hx-trigger="load">
             loading user list
         </div>
 

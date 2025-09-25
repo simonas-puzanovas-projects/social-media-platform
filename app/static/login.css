@@ -194,7 +194,7 @@ body.login-page {
 
 
 /* Mobile Responsive Styles */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   .auth-container {
     padding: 1rem;
     padding-top: 10vh;

@@ -232,12 +232,12 @@ document.addEventListener('touchmove', function(event) {
         }
         
         // Mobile: Swipe down to close (only if swiping down more than 50px)
-        if (window.innerWidth <= 768 && deltaY > 50 && Math.abs(deltaX) < Math.abs(deltaY)) {
+        if (window.innerWidth <= 1000 && deltaY > 50 && Math.abs(deltaX) < Math.abs(deltaY)) {
             event.preventDefault();
             closeNotificationWindow();
         }
         // Desktop: Swipe left to close (only if swiping left more than 100px)
-        else if (window.innerWidth > 768 && deltaX < -100 && Math.abs(deltaY) < Math.abs(deltaX)) {
+        else if (window.innerWidth > 1000 && deltaX < -100 && Math.abs(deltaY) < Math.abs(deltaX)) {
             event.preventDefault();
             closeNotificationWindow();
         }
@@ -253,7 +253,7 @@ document.addEventListener('touchend', function(event) {
 
 // Responsive behavior detection
 function isMobile() {
-    return window.innerWidth <= 768;
+    return window.innerWidth <= 1000;
 }
 
 // Enhanced notification window functions with responsive behavior

@@ -128,7 +128,7 @@ header h1 {
     margin: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     
     header {
         padding: 1rem;

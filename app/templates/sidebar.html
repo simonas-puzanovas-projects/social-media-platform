@@ -1,9 +1,10 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='sidebar.css') }}">
 
+<header> <h1>Social Media Platform</h1> </header>
 <div class="{% if session.username %}app-container{% endif %}">
     {% if session.username %}
-    <aside class="sidebar">
+    <aside id="sidebar-container" class="sidebar">
         <div class="sidebar-header">
             <a href="{{ url_for('bp_index.profile', username=session.username)}}" class="user-profile">
                 <div class="user-avatar">👤</div>

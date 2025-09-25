@@ -65,10 +65,10 @@
 }
 
 /* Mobile: Bottom sliding panel */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .image-upload-container {
-        align-items: flex-end;
         justify-content: center;
+
     }
 
     .image-upload-content {
@@ -107,7 +107,7 @@
 }
 
 /* Mobile image upload header */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .image-upload-header {
         padding: 1rem 1.5rem 0.75rem 1.5rem;
         border-radius: 16px 16px 0 0;
@@ -143,7 +143,7 @@
     overflow-y: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .image-upload-body {
         padding: 1.5rem;
         max-height: calc(85vh - 100px);

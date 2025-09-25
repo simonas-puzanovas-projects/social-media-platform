@@ -22,7 +22,7 @@ def index():
                              .limit(50)\
                              .all()
 
-            return render_template('posts.html', username=session['username'], posts=posts)
+            return render_template('posts.html', username=session['username'], posts=posts, current_user_id=session['user_id'])
         else:
             session.clear()
 
@@ -40,7 +40,7 @@ def profile(username):
                           .limit(50)\
                           .all()
 
-        return render_template('posts.html', username=session['username'], posts=posts, profile_user = username)
+        return render_template('posts.html', username=session['username'], posts=posts, profile_user = username, current_user_id=session.get('user_id'))
     else:
         # User not found, redirect to 404 or home
         return redirect(url_for('bp_index.index'))
@@ -101,11 +101,24 @@ def upload_image():
 
         friends_query = get_friends_query(user.id).all()
         post_data = db.session.query(Post, User.username)\
-                            .join(User, Post.id == new_post.id)\
+                            .join(User, Post.owner == User.id)\
+                            .filter(Post.id == new_post.id)\
                             .first()
 
+        # Send to post owner with delete button
+        owner_socket_post_data = {
+            "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=user.id),
+            "info": new_post.to_dict()
+        }
+        socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
+
+        # Send to friends without delete button
         for friend, _friendship in friends_query:
-            socketio.emit("new_post", render_template("partials/post.html", post_data=post_data), room=f'user_{friend.id}')
+            friend_socket_post_data = {
+                "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=friend.id),
+                "info": new_post.to_dict()
+            }
+            socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend.id}')
 
         return jsonify({
             'success': True,

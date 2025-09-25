@@ -11,10 +11,10 @@
     <script src="{{ url_for('static', filename='index.js') }}"></script>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
 </head>
 
 <body>
-    <header> <h1>Social Media Platform</h1> </header>
 
     {% extends "sidebar.html" %}
     {% include "toast_notification.html" %}

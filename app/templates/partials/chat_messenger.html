@@ -1,4 +1,13 @@
+
+<div class="messenger-mobile-nav-container">
+    <a href="{{ url_for('bp_chat.chat') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Messages</span>
+    </a>
+</div>
+
 <div class="messenger-messages" id="messenger-messages">
+
     {% for message in messages%}
         {%include 'partials/message.html'%}
     {%endfor%}
@@ -7,14 +16,40 @@
 <div class="chat-input-container" >
     <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus();" hx-on:submit="messenger_scroll_down();" hx-target="#messenger-messages" hx-swap="beforeend" hx-vals='{"friend_username": "{{username}}"}'>
         <input name="content" autocomplete="off"/ required>
-        <button>SEND</button>
+        <button type="submit" class="send-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22,2 15,22 11,13 2,9"></polygon>
+            </svg>
+        </button>
     </form>
 </div>
 
 
 <script>
     current_chat_friend_name = "{{username}}";
-
     messenger_scroll_down();
- 
+    
+    if (isMobile()){
+        const friends_list = document.getElementById('chat-friends-list');
+        friends_list.style.display = "none";
+    }
+
+    const sidebar = document.getElementById('sidebar-container');
+    if (isMobile()){ sidebar.style.display = "none"; }
+    else{ sidebar.style.display = "block";  }
+
+    window.addEventListener('resize', function() {
+        const friends_list = document.getElementById('chat-friends-list');
+        const sidebar = document.getElementById('sidebar-container');
+        if (isMobile()){
+            friends_list.style.display = "none";
+            sidebar.style.display = "none"; 
+        }
+        else{
+            friends_list.style.display = "block";
+            sidebar.style.display = "block";  
+        }
+    });
+
 </script>

@@ -50,5 +50,4 @@ function init_chat_socket(){
         setTimeout(init_chat_socket, 100)
     }
 }
-
 init_chat_socket()
