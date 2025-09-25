@@ -137,19 +137,27 @@ social-media-platform/
 │   │   ├── posts.html           # Posts feed and profile pages
 │   │   ├── chat.html            # Chat interface and messaging
 │   │   ├── friends.html         # Friends management interface
+│   │   ├── sidebar.html         # Sidebar component template
+│   │   ├── upload_image.html    # Image upload component
+│   │   ├── notification_window.html # Notification window component
 │   │   ├── toast_notification.html # Toast notification component
 │   │   ├── partials/            # Reusable template components
 │   │   └── errors/              # Custom error pages (404, 401, etc.)
 │   └── static/                  # Static assets
 │       ├── style.css            # Global styles and layout
+│       ├── global.css           # Additional global styling
+│       ├── sidebar.css          # Sidebar component styles
 │       ├── login.css            # Authentication page styles
 │       ├── posts.css            # Posts feed styling
+│       ├── post.css             # Individual post component styles
 │       ├── chat.css             # Chat interface styling
+│       ├── friends.css          # Friends management styling
 │       ├── errors.css           # Error page styling
 │       ├── upload_image.css     # Image upload component styles
 │       ├── index.js             # Core JavaScript with Socket.IO setup
 │       ├── login.js             # Authentication page interactions
 │       ├── posts.js             # Posts feed and image upload functionality
+│       ├── upload_image.js      # Image upload functionality
 │       ├── chat.js              # Real-time chat functionality
 │       ├── friends.js           # Friends management interactions
 │       ├── toast_notification.js # Toast notification system
@@ -224,12 +232,18 @@ social-media-platform/
    pip install -r requirements.txt
    ```
 
-5. **Create Upload Directory** (for image uploads)
+5. **Environment Configuration** (optional)
+   ```bash
+   cp .env.example .env
+   ```
+   Edit the `.env` file to configure your environment variables if needed. The application will work with default settings.
+
+6. **Create Upload Directory** (for image uploads)
    ```bash
    mkdir -p app/static/uploads
    ```
 
-6. **Run Application**
+7. **Run Application**
    ```bash
    python main.py
    ```
@@ -239,8 +253,8 @@ social-media-platform/
    - Set up all required tables (User, Friendship, Post, Message, etc.)
    - Create a default admin user (`admin` / `password123`)
 
-7. **Access Application**
-   - Open your browser to: `http://localhost:5000`
+8. **Access Application**
+   - Open your browser to: `http://localhost:5000` or `http://127.0.0.1:5000`
    - Register a new account or use the admin credentials
 
 ### Configuration Notes
@@ -249,6 +263,18 @@ social-media-platform/
 - **File Uploads**: Images are stored in `app/static/uploads/` with unique filenames
 - **Real-time Features**: WebSocket connections handled automatically by Flask-SocketIO
 - **Security**: Passwords are hashed using Werkzeug's secure methods
+
+### Environment Variables (.env file)
+
+The application supports the following environment variables for configuration:
+
+- **SECRET_KEY**: Flask secret key for session security (default: auto-generated)
+- **FLASK_ENV**: Environment mode (default: `development`)
+- **FLASK_DEBUG**: Debug mode toggle (default: `True`)
+- **DATABASE_URL**: Database connection string (default: `sqlite:///users.db`)
+- **CORS_ALLOWED_ORIGINS**: Comma-separated list of allowed CORS origins
+- **UPLOAD_FOLDER**: Directory for file uploads (default: `app/static/uploads`)
+- **MAX_CONTENT_LENGTH**: Maximum file upload size in bytes (default: 10MB)
 
 ### Default Admin Account
 - **Username**: `admin`
