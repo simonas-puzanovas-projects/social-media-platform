@@ -1,5 +1,7 @@
 var current_chat_friend_name = null
 
+
+
 function createMessageHTML(message) {
     const is_friend = message.sender === current_chat_friend_name;
 

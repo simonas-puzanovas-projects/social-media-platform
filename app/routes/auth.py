@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..models import User
-from .. import db
+from ..services.user_service import UserAlreadyExistsError
+from ..services import user_service
 
 bp_auth = Blueprint("bp_auth", __name__, template_folder = "../templates")
 
@@ -11,7 +12,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         user = User.query.filter_by(username=username).first()
         
         if user and check_password_hash(user.password_hash, password):
@@ -31,15 +32,28 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
+        try:
+            user_service.create_user(username, password)
+
+        except UserAlreadyExistsError:
+            return jsonify(
+                {
+                    'success': False,
+                    'message': 'Username already exists!'
+                }
+            )
+
+
         
-        if User.query.filter_by(username=username).first():
-            return jsonify({'success': False, 'message': 'Username already exists!'})
+        #if User.query.filter_by(username=username).first():
+        #    return jsonify({'success': False, 'message': 'Username already exists!'})
         
-        password_hash = generate_password_hash(password)
-        new_user = User(username=username, password_hash=password_hash)
+        #password_hash = generate_password_hash(password)
+        #new_user = User(username=username, password_hash=password_hash)
         
-        db.session.add(new_user)
-        db.session.commit()
+        #db.session.add(new_user)
+        #db.session.commit()
         
         return redirect(url_for('bp_auth.login'))
     

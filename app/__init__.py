@@ -17,6 +17,9 @@ def app_init():
 
     db.init_app(app)
 
+    from .services import init_services
+    init_services(db)
+
     # Use configured CORS origins instead of wildcard
     cors_origins = app.config.get('CORS_ALLOWED_ORIGINS', ['http://localhost:5000'])
     print(f"Config name: {config_name}")
