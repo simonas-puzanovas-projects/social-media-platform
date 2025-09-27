@@ -1,7 +1,7 @@
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from ..models import User
 
-class UserAlreadyExistsError(Exception): pass
+class UserServiceError(Exception): pass
 
 class UserService:
     def __init__(self, db):
@@ -9,7 +9,7 @@ class UserService:
 
     def create_user(self, username, password):
         if User.query.filter_by(username=username).first():
-            raise UserAlreadyExistsError
+            raise UserServiceError("User already exists.")
         
         password_hash = generate_password_hash(password)
         new_user = User(username=username, password_hash=password_hash)
@@ -17,4 +17,14 @@ class UserService:
         self.db.session.add(new_user)
         self.db.session.commit()
 
+    def authenticate_user(self, username, password):
+        user = User.query.filter_by(username=username).first()
 
+        if not user:
+            raise UserServiceError("User does not exists.")
+        
+        if not check_password_hash(user.password_hash, password):
+            raise UserServiceError("Wrong password.")
+
+        return user
+    

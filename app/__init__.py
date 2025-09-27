@@ -30,7 +30,6 @@ def app_init():
         socketio.init_app(app, cors_allowed_origins="*")
     else:
         socketio.init_app(app, cors_allowed_origins=cors_origins)
-    from . import socket
 
     from .routes import bp_auth
     from .routes import bp_index
@@ -48,6 +47,8 @@ def app_init():
     from .error_handlers import register_error_handlers, setup_logging
     register_error_handlers(app)
     setup_logging(app)
+
+    from . import sockets
 
     return app
     

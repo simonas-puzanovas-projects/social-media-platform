@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..models import User
-from ..services.user_service import UserAlreadyExistsError
+from ..services.user_service import UserServiceError
 from ..services import user_service
 
 bp_auth = Blueprint("bp_auth", __name__, template_folder = "../templates")
@@ -13,14 +13,16 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        user = User.query.filter_by(username=username).first()
+        try:
+            user = user_service.authenticate_user(username, password)
+
+        except UserServiceError as error:
+            return jsonify({'success': False, 'message': str(error)})
         
-        if user and check_password_hash(user.password_hash, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            return redirect(url_for('bp_index.index'))
-        else:
-            return jsonify({'success': False, 'message': 'Invalid username or password!'})
+        session['user_id'] = user.id
+        session['username'] = user.username
+
+        return redirect(url_for('bp_index.index'))
     
     if 'user_id' in session:
         return redirect(url_for("bp_index.index"))
@@ -36,25 +38,9 @@ def register():
         try:
             user_service.create_user(username, password)
 
-        except UserAlreadyExistsError:
-            return jsonify(
-                {
-                    'success': False,
-                    'message': 'Username already exists!'
-                }
-            )
+        except UserServiceError as error:
+            return jsonify({'success': False, 'message': str(error)})
 
-
-        
-        #if User.query.filter_by(username=username).first():
-        #    return jsonify({'success': False, 'message': 'Username already exists!'})
-        
-        #password_hash = generate_password_hash(password)
-        #new_user = User(username=username, password_hash=password_hash)
-        
-        #db.session.add(new_user)
-        #db.session.commit()
-        
         return redirect(url_for('bp_auth.login'))
     
     return render_template('login.html')
