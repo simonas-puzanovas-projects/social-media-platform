@@ -13,6 +13,7 @@ def chat():
 
 @bp_chat.route("/chat/friends_list")
 @login_required
+
 def get_friends_list():
     current_user_id = session['user_id']
     friends_list = get_friends_query(current_user_id).all()
@@ -30,11 +31,14 @@ def get_friends_list():
 
 @bp_chat.route("/chat/send_message", methods=['POST'])
 @login_required
+
 def send_message():
     current_user_id = session['user_id']
     friend = db.session.query(User).filter(User.username == request.form.get("friend_username")).first()
+
     if not friend:
         return jsonify({'success': False, 'message': 'Friend not found'}), 404
+
     friend_id = friend.id
 
     messenger = db.session.query(Messenger).filter(

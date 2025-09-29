@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
 from werkzeug.utils import secure_filename
-import os
-import uuid
-from PIL import Image
 from .. import db, socketio
 from ..models import User, Post
 from ..decorators import login_required
 from ..helpers import get_friends_query
+import os
+
+from ..services.user_service import UserServiceError
+from ..services.post_service import PostServiceError
+from ..services import user_service, post_service
 
 bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 
@@ -49,56 +51,22 @@ def profile(username):
 @bp_index.route('/upload_image', methods=['POST'])
 @login_required
 def upload_image():
-    user = User.query.filter_by(id=session["user_id"]).first()
-    if not user:
-        return jsonify({'success': False, 'message': 'User not found'}), 404
 
-    if 'image' not in request.files:
-        return jsonify({'success': False, 'message': 'No image file provided'}), 400
+        if 'image' not in request.files:
+            return jsonify({'success': False, 'message': 'No image file provided'}), 400
 
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No file selected'}), 400
+        try:
+            user = user_service.get_user(session['user_id'])
+            file = post_service.validate_image(request.files["image"])
+            new_post = post_service.create_post(user.id, file)
 
-    # Validate file type
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-    if not file.filename.lower().endswith(tuple(allowed_extensions)):
-        return jsonify({'success': False, 'message': 'Invalid file type. Only images allowed.'}), 400
+        except PostServiceError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
 
-    try:
-        # Validate image by opening it
-        img = Image.open(file.stream)
-        img.verify()
-        file.stream.seek(0)  # Reset stream after verification
+        except UserServiceError as e:
+            return jsonify({'success': False, 'message': str(e)}), 400
 
-        # Check image size (max 10MB)
-        file.seek(0, os.SEEK_END)
-        file_size = file.tell()
-        file.seek(0)
-
-        if file_size > 10 * 1024 * 1024:  # 10MB limit
-            return jsonify({'success': False, 'message': 'File too large. Maximum size is 10MB.'}), 400
-
-        # Create uploads directory if it doesn't exist
-        upload_folder = os.path.join('app', 'static', 'uploads')
-        os.makedirs(upload_folder, exist_ok=True)
-
-        # Generate unique filename
-        file_extension = file.filename.rsplit('.', 1)[1].lower()
-        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
-        file_path = os.path.join(upload_folder, unique_filename)
-
-        # Save the file
-        file.save(file_path)
-
-        # Create database record
-        new_post = Post(
-            owner=user.id,
-            image_path=f"uploads/{unique_filename}"
-        )
-        db.session.add(new_post)
-        db.session.commit()
-
+        #future pub/sub
         friends_query = get_friends_query(user.id).all()
         post_data = db.session.query(Post, User.username)\
                             .join(User, Post.owner == User.id)\
@@ -124,12 +92,8 @@ def upload_image():
             'success': True,
             'message': 'Image uploaded successfully!',
             'post_id': new_post.id,
-            'image_url': f"/static/uploads/{unique_filename}"
+            'image_url': new_post.image_path
         }), 200
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': f'Error processing image: {str(e)}'}), 500
 
 @bp_index.route('/delete_post', methods=['POST'])
 @login_required

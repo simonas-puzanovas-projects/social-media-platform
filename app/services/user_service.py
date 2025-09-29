@@ -27,4 +27,17 @@ class UserService:
             raise UserServiceError("Wrong password.")
 
         return user
+
+    def get_user(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            raise UserServiceError("User does not exist.")
+        return user
+
+
+        
+        
+
+
+
     
