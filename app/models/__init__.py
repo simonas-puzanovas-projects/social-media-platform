@@ -19,6 +19,15 @@ class User(db.Model):
                                       lazy='dynamic')
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
 
+    def to_public_data(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'is_online': self.is_online,
+            'last_seen': self.last_seen.isoformat()
+        }
+
+
 class Friendship(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     requester_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

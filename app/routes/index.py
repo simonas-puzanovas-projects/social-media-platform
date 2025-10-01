@@ -17,7 +17,6 @@ def index():
     if 'user_id' in session:
         user = User.query.filter_by(id=session["user_id"]).first()
         if user:
-            # Get all posts with eager loading to avoid N+1 queries
             posts = db.session.query(Post, User.username)\
                              .join(User, Post.owner == User.id)\
                              .order_by(Post.created_at.desc())\
@@ -34,7 +33,6 @@ def index():
 def profile(username):
     user = User.query.filter_by(username=username).first()
     if user:
-        # Get all posts for this user with eager loading to avoid N+1 queries
         posts = db.session.query(Post, User.username)\
                           .join(User, Post.owner == User.id)\
                           .filter(User.username == username)\
@@ -44,7 +42,6 @@ def profile(username):
 
         return render_template('posts.html', username=session['username'], posts=posts, profile_user = username, current_user_id=session.get('user_id'))
     else:
-        # User not found, redirect to 404 or home
         return redirect(url_for('bp_index.index'))
 
 
@@ -67,7 +64,7 @@ def upload_image():
             return jsonify({'success': False, 'message': str(e)}), 400
 
         #future pub/sub
-        friends_query = get_friends_query(user.id).all()
+        friends_query = user_service.get_user_friends(user.id)
         post_data = db.session.query(Post, User.username)\
                             .join(User, Post.owner == User.id)\
                             .filter(Post.id == new_post.id)\
@@ -81,12 +78,12 @@ def upload_image():
         socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
 
         # Send to friends without delete button
-        for friend, _friendship in friends_query:
+        for friend in friends_query:
             friend_socket_post_data = {
-                "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=friend.id),
+                "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=friend["id"]),
                 "info": new_post.to_dict()
             }
-            socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend.id}')
+            socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
 
         return jsonify({
             'success': True,
@@ -98,6 +95,7 @@ def upload_image():
 @bp_index.route('/delete_post', methods=['POST'])
 @login_required
 def delete_post():
+    #TODO: PostService.delete_post
     post_id = request.json.get('post_id')
     current_user_id = session['user_id']
 

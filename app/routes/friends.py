@@ -4,6 +4,7 @@ from ..helpers import get_friendship_status, find_friendship, create_notificatio
 from ..models import User, Friendship, Notification, Messenger
 from ..decorators import login_required
 from .. import db
+from ..services import user_service
 
 bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
 
@@ -13,7 +14,8 @@ def friends():
     current_user_id = session['user_id']
     
     # Get accepted friends
-    friends = get_friends_query(current_user_id).all()
+    #friends = get_friends_query(current_user_id).all()
+    friends = user_service.get_user_friends(current_user_id)
     
     # Get received friend requests
     received_requests = db.session.query(User, Friendship).join(

@@ -3,6 +3,7 @@ from ..helpers import get_friendship_status, find_friendship, create_notificatio
 from ..models import Messenger, Message, Friendship, User
 from ..decorators import login_required
 from .. import db, socketio
+from ..services import user_service
 
 bp_chat = Blueprint("bp_chat", __name__, template_folder="../templates")
 
@@ -15,17 +16,7 @@ def chat():
 @login_required
 
 def get_friends_list():
-    current_user_id = session['user_id']
-    friends_list = get_friends_query(current_user_id).all()
-    friends_data = []
-
-    for user, friendship in friends_list:
-        friends_data.append({
-            'id': user.id,
-            'username': user.username,
-            'is_online': user.is_online,
-            'last_seen': user.last_seen.isoformat() if user.last_seen else None
-        })
+    friends_data = user_service.get_user_friends(session["user_id"])
 
     return render_template("partials/chat_friends_list.html", friends=friends_data)
 
@@ -68,13 +59,14 @@ def send_message():
 @login_required
 def open_chat(username):
 
-    current_user_id = session['user_id']
     friend_id = 0
+    current_user_id = session["user_id"]
 
-    friends_list = get_friends_query(current_user_id).all()
-    for friend, friendship in friends_list:
-        if username == friend.username:
-            friend_id = friend.id
+    friends_list = user_service.get_user_friends(session["user_id"])
+
+    for friend in friends_list:
+        if username == friend["username"]:
+            friend_id = friend["id"]
 
     messenger = db.session.query(Messenger).filter(
         (current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id) |
