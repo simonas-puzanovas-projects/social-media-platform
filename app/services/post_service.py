@@ -60,3 +60,23 @@ class PostService:
             self.db.session.commit()
 
             return new_post
+
+    def delete_post(self, user_id, post_id):
+        post = Post.query.filter_by(id=post_id, owner=user_id).first()
+        if not post:
+            raise PostServiceError("Post not found or not authorized")
+
+        try:
+            image_path = os.path.join('app', 'static', post.image_path)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
+            self.db.session.delete(post)
+            self.db.session.commit()
+            return True
+
+        except Exception as e:
+            self.db.session.rollback()
+            raise Exception(e)
+
+

@@ -95,30 +95,11 @@ def upload_image():
 @bp_index.route('/delete_post', methods=['POST'])
 @login_required
 def delete_post():
-    #TODO: PostService.delete_post
-    post_id = request.json.get('post_id')
-    current_user_id = session['user_id']
-
-    if not post_id:
-        return jsonify({'success': False, 'message': 'Post ID required'}), 400
-
-    # Find the post and verify ownership
-    post = Post.query.filter_by(id=post_id, owner=current_user_id).first()
-    if not post:
-        return jsonify({'success': False, 'message': 'Post not found or not authorized'}), 404
-
     try:
-        # Delete the image file from filesystem
-        image_path = os.path.join('app', 'static', post.image_path)
-        if os.path.exists(image_path):
-            os.remove(image_path)
-
-        # Delete the post from database
-        db.session.delete(post)
-        db.session.commit()
-
+        post_id = request.json.get('post_id')
+        post_service.delete_post(session["user_id"], post_id)
         return jsonify({'success': True, 'message': 'Post deleted successfully'}), 200
-
+    
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': f'Error deleting post: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': e}), 404
+
