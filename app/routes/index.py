@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from .. import db, socketio
 from ..models import User, Post
 from ..decorators import login_required
-from ..helpers import get_friends_query
+from ..services import friendship_service
 import os
 
 from ..services.user_service import UserServiceError

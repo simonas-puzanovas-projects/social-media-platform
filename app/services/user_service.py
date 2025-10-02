@@ -35,16 +35,8 @@ class UserService:
         return user
 
     def get_user_friends(self, user_id):
-        friend_friendship_query = self.db.session.query(User, Friendship).join( Friendship, (User.id == Friendship.requester_id) | (User.id == Friendship.requested_id)
-            ).filter( Friendship.status == 'accepted', ((Friendship.requester_id == user_id) | (Friendship.requested_id == user_id)),
-            User.id != user_id).all()
-        
-        friends = []
-
-        for user, friendship in friend_friendship_query:
-            friends.append(user.to_public_data())
-        
-        return friends
+        from ..services import friendship_service
+        return friendship_service.get_user_friends(user_id)
 
         
 

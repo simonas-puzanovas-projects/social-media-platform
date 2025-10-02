@@ -6,7 +6,8 @@
       "WebFetch(domain:api.github.com)",
       "Bash(git add:*)",
       "Bash(find:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(./venv/Scripts/python.exe -c \"import sys; sys.path.insert(0, ''.''); import app.services; print(''Services module imports successfully'')\")"
     ],
     "deny": [],
     "ask": []

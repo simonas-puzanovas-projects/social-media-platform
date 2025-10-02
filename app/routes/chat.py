@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, session, json, request
-from ..helpers import get_friendship_status, find_friendship, create_notification, clean_notification_data, get_friends_query, get_user_messenger
+from ..helpers import create_notification, clean_notification_data
 from ..models import Messenger, Message, Friendship, User
 from ..decorators import login_required
 from .. import db, socketio
