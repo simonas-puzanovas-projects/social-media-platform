@@ -1,12 +1,12 @@
 var current_chat_friend_name = null
-
-
+var current_chat_id = null
 
 function createMessageHTML(message) {
     const is_friend = message.sender === current_chat_friend_name;
+    var html = ""
 
     if (is_friend){
-        return `
+        html = `
             <div class="message-container-right">
                 <h3 class="message-text">
                     ${message.sender}: ${message.content} 
@@ -16,15 +16,15 @@ function createMessageHTML(message) {
     }
 
     else{
-        return `
+        html = `
             <div class="message-container-left">
                 <h3 class="message-text">
                     ${message.sender}: ${message.content} 
                 </h3>
             </div>
         `;
-
     }
+    document.getElementById('messenger-messages').insertAdjacentHTML('beforeend', html);
 }
 
 function messenger_scroll_down(){
@@ -41,9 +41,8 @@ function init_chat_socket(){
     if (typeof socket !== 'undefined') {
         socket.on('new_message', function(data) {
             
-            if (data.sender === current_chat_friend_name) {
-                const messageHTML = createMessageHTML(data);
-                document.getElementById('messenger-messages').insertAdjacentHTML('beforeend', messageHTML);
+            if (current_chat_id == data.chat_id) {
+                createMessageHTML(data);
                 messenger_scroll_down();
             }
         });
@@ -52,4 +51,5 @@ function init_chat_socket(){
         setTimeout(init_chat_socket, 100)
     }
 }
+
 init_chat_socket()

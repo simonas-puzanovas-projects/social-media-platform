@@ -10,17 +10,24 @@
 
 <body>
 
-
     <div class="chat-container">
 
-        <div id="chat-friends-list" class="chat-friends-list" hx-get="/chat/friends_list" hx-trigger="load">
-            loading user list
+        <div id="chat-friends-list" class="chat-friends-list">
+            <div class="chat-friends-list-item">
+            {% for friend in friends %}
+                <h3 id="chat-friend-button" hx-get="/chat/open/{{friend.username}}" hx-trigger="click" hx-target="#messenger">
+                    {{friend.username}}
+                </h3>
+            {%endfor%}
+            </div>
         </div>
 
         <div class="messenger" id="messenger">
+
         </div>
 
     </div>
 </body>
+
 
 {% endblock %}

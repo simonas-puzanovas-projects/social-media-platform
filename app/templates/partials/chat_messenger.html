@@ -8,13 +8,10 @@
 
 <div class="messenger-messages" id="messenger-messages">
 
-    {% for message in messages%}
-        {%include 'partials/message.html'%}
-    {%endfor%}
 </div>
 
 <div class="chat-input-container" >
-    <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus();" hx-on:submit="messenger_scroll_down();" hx-target="#messenger-messages" hx-swap="beforeend" hx-vals='{"friend_username": "{{username}}"}'>
+    <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus()" hx-swap="none" hx-on:submit="messenger_scroll_down();"hx-vals='{"friend_username": "{{username}}"}'>
         <input name="content" autocomplete="off"/ required>
         <button type="submit" class="send-button">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -28,6 +25,8 @@
 
 <script>
     current_chat_friend_name = "{{username}}";
+    current_chat_id = "{{chat_id}}"
+
     messenger_scroll_down();
     
     if (isMobile()){
@@ -51,5 +50,10 @@
             sidebar.style.display = "block";  
         }
     });
+
+    const messages = {{messages | tojson}}
+    messages.forEach(message => {
+        createMessageHTML(message)
+    })
 
 </script>

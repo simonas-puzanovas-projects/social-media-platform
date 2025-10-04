@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session, json, request
+from flask import Blueprint, render_template, redirect, url_for, session, json, request, jsonify
 from ..helpers import create_notification, clean_notification_data
 from ..models import Messenger, Message, Friendship, User
 from ..decorators import login_required
@@ -10,15 +10,8 @@ bp_chat = Blueprint("bp_chat", __name__, template_folder="../templates")
 @bp_chat.route("/chat")
 @login_required
 def chat():
-    return render_template('chat.html')
-
-@bp_chat.route("/chat/friends_list")
-@login_required
-
-def get_friends_list():
     friends_data = user_service.get_user_friends(session["user_id"])
-
-    return render_template("partials/chat_friends_list.html", friends=friends_data)
+    return render_template('chat.html', friends=friends_data)
 
 @bp_chat.route("/chat/send_message", methods=['POST'])
 @login_required
@@ -48,12 +41,14 @@ def send_message():
 
     message_json = {
         'content': new_message.content,
-        'sender': db.session.query(User).get(session["user_id"]).username
+        'sender': db.session.query(User).get(session["user_id"]).username,
+        "chat_id": messenger.id
     }
 
     socketio.emit("new_message", message_json, room=f'user_{friend_id}')
+    socketio.emit("new_message", message_json, room=f'user_{session["user_id"]}')
 
-    return render_template("partials/message.html", message = message_json)
+    return jsonify({'success': True, 'message': 'message sent'}), 200
 
 @bp_chat.route("/chat/open/<username>")
 @login_required
@@ -88,6 +83,6 @@ def open_chat(username):
                 "content": message.content
             })
 
-        return render_template("partials/chat_messenger.html", username = username, messages = json_data)
+        return render_template("partials/chat_messenger.html", username = username, messages = json_data, chat_id=messenger.id)
 
 
