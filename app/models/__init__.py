@@ -66,8 +66,8 @@ class Post(db.Model):
             'owner_id': self.owner,
             'owner_name': self.owner_user.username,
             'image_path': self.image_path,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
         }
 
 class Notification(db.Model):

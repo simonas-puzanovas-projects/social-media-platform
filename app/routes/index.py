@@ -12,22 +12,16 @@ from ..services import user_service, post_service
 
 bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 
+@login_required
 @bp_index.route('/')
 def index():
-    if 'user_id' in session:
-        user = User.query.filter_by(id=session["user_id"]).first()
-        if user:
-            posts = db.session.query(Post, User.username)\
-                             .join(User, Post.owner == User.id)\
-                             .order_by(Post.created_at.desc())\
-                             .limit(50)\
-                             .all()
+    posts = db.session.query(Post)\
+                        .order_by(Post.created_at.desc())\
+                        .limit(50)\
+                        .all()
+    posts_dict = [post.to_dict() for post in posts]
 
-            return render_template('posts.html', username=session['username'], posts=posts, current_user_id=session['user_id'])
-        else:
-            session.clear()
-
-    return redirect(url_for('bp_auth.login'))
+    return render_template('posts.html', username=session['username'], posts=posts_dict, current_user_id=session['user_id'])
 
 @bp_index.route('/profile/<username>')
 def profile(username):

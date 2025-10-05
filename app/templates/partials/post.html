@@ -3,27 +3,24 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='post.css') }}">
 
-{% set post = post_data[0] %}
-{% set friends_username = post_data[1] %}
-
-<div class="post-item" data-post-id="{{ post.id }}">
+<div class="post-item" data-post-id="{{ post_data.id }}">
     <div class="post-header">
         <div class="post-author">
             <div class="author-avatar">👤</div>
             <div class="author-info">
-                <span class="author-name">{{ friends_username }}</span>
-                <span class="post-time">{{ post.created_at.strftime('%B %d, %Y') }}</span>
+                <span class="author-name">{{ post_data.owner_name }}</span>
+                <span class="post-time">{{ post_data.created_at.strftime('%B %d, %Y') }}</span>
             </div>
         </div>
-        {% if post.owner == current_user_id %}
+        {% if post_data.owner_name == username %}
         <div class="post-actions">
-            <button class="btn-delete" onclick="deletePost({{ post.id }})" title="Delete Post">🗑️</button>
+            <button class="btn-delete" onclick="deletePost({{ post_data.id }})" title="Delete Post">🗑️</button>
         </div>
         {% endif %}
     </div>
 
     <div class="post-content">
-        <img src="{{ url_for('static', filename=post.image_path) }}" alt="Post image" class="post-image">
+        <img src="{{ url_for('static', filename=post_data.image_path) }}" alt="Post image" class="post-image">
     </div>
 
     <div class="post-footer">
@@ -33,4 +30,5 @@
         </div>
     </div>
 </div>
+
 {%endblock%}
