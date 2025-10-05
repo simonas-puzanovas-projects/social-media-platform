@@ -4,7 +4,7 @@ function init_posts_socket(){
     if (typeof socket !== 'undefined') {
 
         socket.on('new_post', function(data) {
-            if (profile_user == data.info.owner_name || profile_user == null){
+            if (profile_user == data.owner || profile_user == null){
                 var element = document.getElementsByClassName("posts-grid")[0] 
                 element.insertAdjacentHTML("afterbegin", data.html)
             }

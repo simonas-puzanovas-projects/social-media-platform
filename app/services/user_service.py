@@ -33,6 +33,13 @@ class UserService:
         if not user:
             raise UserServiceError("User does not exist.")
         return user
+    
+    def get_user_by_name(self, username):
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            raise UserServiceError("User does not exist.")
+        return user
+
 
     def get_user_friends(self, user_id):
         from ..services import friendship_service

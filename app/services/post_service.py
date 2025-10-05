@@ -1,9 +1,10 @@
 from PIL import Image
 import os
 import uuid
-from ..models import Post
+from ..models import Post, User
 
 from .user_service import UserService
+from ..services import user_service
 
 class PostServiceError(Exception): pass
 
@@ -12,33 +13,30 @@ class PostService:
     def __init__(self, db):
         self.db = db
 
-    def validate_image(self, file):
-        if file.filename == '':
-             raise PostServiceError('No file selected')
-
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-        if not file.filename.lower().endswith(tuple(allowed_extensions)):
-             raise PostServiceError('Invalid file type. Only images allowed.')
-
+    def query_posts(self, profile_user_id=None):
         try:
-            # Validate image by opening it
-            img = Image.open(file.stream)
-            img.verify()
-            file.stream.seek(0)  # Reset stream after verification
+            if profile_user_id:
+                posts = self.db.session.query(Post)\
+                                    .join(User, Post.owner == User.id)\
+                                    .filter(User.id == profile_user_id)\
+                                    .order_by(Post.created_at.desc())\
+                                    .limit(50)\
+                                    .all()
+                posts_to_dict = [post.to_dict() for post in posts]
+                return posts_to_dict
 
-            # Check image size (max 10MB)
-            file.seek(0, os.SEEK_END)
-            file_size = file.tell()
-            file.seek(0)
+            else:
+                posts = self.db.session.query(Post)\
+                                    .order_by(Post.created_at.desc())\
+                                    .limit(50)\
+                                    .all()
+                
+                posts_to_dict = [post.to_dict() for post in posts]
+                return posts_to_dict
 
-            if file_size > 10 * 1024 * 1024:  # 10MB limit
-                raise PostServiceError('File too large. Maximum size is 10MB.')
-            
-            return file
-        
         except Exception as e:
-            raise PostServiceError(str(e))
-
+            print("message:", e)
+            raise PostServiceError(e)
     
     def create_post(self, user_id, file):
 
@@ -79,4 +77,29 @@ class PostService:
             self.db.session.rollback()
             raise Exception(e)
 
+    def validate_image(self, file):
+        if file.filename == '':
+             raise PostServiceError('No file selected')
 
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        if not file.filename.lower().endswith(tuple(allowed_extensions)):
+             raise PostServiceError('Invalid file type. Only images allowed.')
+
+        try:
+            # Validate image by opening it
+            img = Image.open(file.stream)
+            img.verify()
+            file.stream.seek(0)  # Reset stream after verification
+
+            # Check image size (max 10MB)
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            file.seek(0)
+
+            if file_size > 10 * 1024 * 1024:  # 10MB limit
+                raise PostServiceError('File too large. Maximum size is 10MB.')
+            
+            return file
+        
+        except Exception as e:
+            raise PostServiceError(str(e))

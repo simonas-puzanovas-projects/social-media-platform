@@ -12,31 +12,29 @@ from ..services import user_service, post_service
 
 bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 
-@login_required
 @bp_index.route('/')
+@login_required
 def index():
-    posts = db.session.query(Post)\
-                        .order_by(Post.created_at.desc())\
-                        .limit(50)\
-                        .all()
-    posts_dict = [post.to_dict() for post in posts]
+    #posts = db.session.query(Post)\
+    #                    .order_by(Post.created_at.desc())\
+    #                    .limit(50)\
+    #                    .all()
+    #posts_dict = [post.to_dict() for post in posts]
+    posts = post_service.query_posts()
 
-    return render_template('posts.html', username=session['username'], posts=posts_dict, current_user_id=session['user_id'])
+    return render_template('posts.html', username=session['username'], posts=posts, current_user_id=session['user_id'])
 
 @bp_index.route('/profile/<username>')
+@login_required
 def profile(username):
-    user = User.query.filter_by(username=username).first()
-    if user:
-        posts = db.session.query(Post, User.username)\
-                          .join(User, Post.owner == User.id)\
-                          .filter(User.username == username)\
-                          .order_by(Post.created_at.desc())\
-                          .limit(50)\
-                          .all()
+    try:
+        user = user_service.get_user_by_name(username)
+        posts = post_service.query_posts(profile_user_id=int(user.id))
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 404
 
-        return render_template('posts.html', username=session['username'], posts=posts, profile_user = username, current_user_id=session.get('user_id'))
-    else:
-        return redirect(url_for('bp_index.index'))
+    return render_template('posts.html', username=session['username'], posts=posts, profile_user = username, current_user_id=session.get('user_id'))
 
 
 @bp_index.route('/upload_image', methods=['POST'])
@@ -59,23 +57,23 @@ def upload_image():
 
         #future pub/sub
         friends_query = user_service.get_user_friends(user.id)
-        post_data = db.session.query(Post, User.username)\
-                            .join(User, Post.owner == User.id)\
-                            .filter(Post.id == new_post.id)\
-                            .first()
+        #post_data = db.session.query(Post)\
+        #                    .join(User, Post.owner == User.id)\
+        #                    .filter(Post.id == new_post.id)\
+        #                    .first()
 
         # Send to post owner with delete button
         owner_socket_post_data = {
-            "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=user.id),
-            "info": new_post.to_dict()
+            "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=user.id),
+            "owner": user.username
         }
         socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
 
         # Send to friends without delete button
         for friend in friends_query:
             friend_socket_post_data = {
-                "html": render_template("partials/post.html", username=session['username'], post_data=post_data, current_user_id=friend["id"]),
-                "info": new_post.to_dict()
+                "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=friend["id"]),
+                "owner": user.username
             }
             socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
 
