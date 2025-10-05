@@ -11,7 +11,7 @@
 </div>
 
 <div class="chat-input-container" >
-    <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus()" hx-swap="none" hx-on:submit="messenger_scroll_down();"hx-vals='{"friend_username": "{{username}}"}'>
+    <form hx-post="/chat/send_message" hx-on:htmx:after-request="this.reset(); this.querySelector('input').focus()" hx-swap="none" hx-on:submit="messenger_scroll_down();"hx-vals='{"friend_username": "{{friend_username}}"}'>
         <input name="content" autocomplete="off"/ required>
         <button type="submit" class="send-button">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -24,23 +24,28 @@
 
 
 <script>
-    current_chat_friend_name = "{{username}}";
+    current_chat_friend_name = "{{friend_username}}";
     current_chat_id = "{{chat_id}}"
 
-    messenger_scroll_down();
-    
+    var sidebar = document.getElementById('sidebar-container');
+    var friends_list = document.getElementById('chat-friends-list');
+
     if (isMobile()){
-        const friends_list = document.getElementById('chat-friends-list');
+        sidebar.style.display = "none";
         friends_list.style.display = "none";
     }
 
-    const sidebar = document.getElementById('sidebar-container');
-    if (isMobile()){ sidebar.style.display = "none"; }
-    else{ sidebar.style.display = "block";  }
+    else{
+        sidebar.style.display = "block";
+    }
+
+    {{messages | tojson}}.forEach(message => {
+        createMessageHTML(message)
+    });
+
+    messenger_scroll_down();
 
     window.addEventListener('resize', function() {
-        const friends_list = document.getElementById('chat-friends-list');
-        const sidebar = document.getElementById('sidebar-container');
         if (isMobile()){
             friends_list.style.display = "none";
             sidebar.style.display = "none"; 
@@ -50,10 +55,5 @@
             sidebar.style.display = "block";  
         }
     });
-
-    const messages = {{messages | tojson}}
-    messages.forEach(message => {
-        createMessageHTML(message)
-    })
 
 </script>

@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template, redirect, url_for, session, json, request, jsonify
-from ..helpers import create_notification, clean_notification_data
-from ..models import Messenger, Message, Friendship, User
+from flask import Blueprint, render_template, session, request, jsonify
+from ..models import Messenger, Message, User
 from ..decorators import login_required
 from .. import db, socketio
 from ..services import user_service
@@ -83,6 +82,6 @@ def open_chat(username):
                 "content": message.content
             })
 
-        return render_template("partials/chat_messenger.html", username = username, messages = json_data, chat_id=messenger.id)
+        return render_template("partials/chat_messenger.html", friend_username = username, messages = json_data, chat_id=messenger.id)
 
 
