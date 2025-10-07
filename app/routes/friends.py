@@ -1,10 +1,10 @@
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
+from flask import Blueprint, render_template, request, session, jsonify
 from ..helpers import create_notification, clean_notification_data
-from ..models import User, Friendship, Notification, Messenger
+from ..models import User, Notification, Messenger
 from ..decorators import login_required
 from .. import db
-from ..services import user_service, friendship_service
+from ..services import user_service, friendship_service, notification_service
 
 bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
 
@@ -97,24 +97,23 @@ def respond_friend_request():
             )
 
             return jsonify({'success': True, 'message': 'Friend request accepted!'})
+
         elif response == 'reject':
-            requester_id = friendship_service.reject_friend_request(friendship_id, current_user_id)
 
-            # Delete any notifications related to this friend request
-            related_notifications = Notification.query.filter_by(
-                user_id=current_user_id,
-                type='friend_request'
-            ).all()
+            try:
+                friend_id = friendship_service.reject_friend_request(friendship_id, current_user_id)
 
-            for notification in related_notifications:
-                data = clean_notification_data(notification.data)
-                if data and data.get('friendship_id') == friendship_id:
-                    db.session.delete(notification)
+                notification_service.remove_friendship_history(
+                    session["user_id"],
+                    friend_id,
+                    friendship_id
+                )
 
-            db.session.commit()
+            except Exception as e:
+                return jsonify({'success': False, 'message': str(e)})
+
             return jsonify({'success': True, 'message': 'Friend request rejected'})
-        else:
-            return jsonify({'success': False, 'message': 'Invalid response'})
+
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -125,20 +124,23 @@ def cancel_friend_request():
     current_user_id = session['user_id']
     
     try:
-        requested_id = friendship_service.cancel_friend_request(friendship_id, current_user_id)
+        friend_id = friendship_service.cancel_friend_request(friendship_id, current_user_id)
+
+        notification_service.remove_friendship_history(
+            session["user_id"],
+            friend_id,
+            friendship_id
+        )
 
         # Delete any notifications related to this friend request from the recipient's notifications
-        related_notifications = Notification.query.filter_by(
-            user_id=requested_id,
-            type='friend_request'
-        ).all()
+        #related_notifications = notification_service.query_notifications(session["user_id"], type="friend_request")
 
-        for notification in related_notifications:
-            data = clean_notification_data(notification.data)
-            if data and data.get('friendship_id') == friendship_id:
-                db.session.delete(notification)
+        #for notification in related_notifications:
+        #    data = clean_notification_data(notification.data)
+        #    if data and data.get('friendship_id') == friendship_id:
+        #        db.session.delete(notification)
 
-        db.session.commit()
+        #db.session.commit()
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     

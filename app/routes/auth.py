@@ -1,6 +1,4 @@
 from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
-from ..models import User
 from ..services.user_service import UserServiceError
 from ..services import user_service
 

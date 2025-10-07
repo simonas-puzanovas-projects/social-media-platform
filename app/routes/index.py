@@ -1,9 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
-from werkzeug.utils import secure_filename
-from .. import db, socketio
-from ..models import User, Post
+from flask import Blueprint, render_template, session, request, jsonify
+from .. import socketio
 from ..decorators import login_required
-from ..services import friendship_service
 import os
 
 from ..services.user_service import UserServiceError
@@ -57,12 +54,6 @@ def upload_image():
 
         #future pub/sub
         friends_query = user_service.get_user_friends(user.id)
-        #post_data = db.session.query(Post)\
-        #                    .join(User, Post.owner == User.id)\
-        #                    .filter(Post.id == new_post.id)\
-        #                    .first()
-
-        # Send to post owner with delete button
         owner_socket_post_data = {
             "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=user.id),
             "owner": user.username
