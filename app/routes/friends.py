@@ -132,15 +132,6 @@ def cancel_friend_request():
             friendship_id
         )
 
-        # Delete any notifications related to this friend request from the recipient's notifications
-        #related_notifications = notification_service.query_notifications(session["user_id"], type="friend_request")
-
-        #for notification in related_notifications:
-        #    data = clean_notification_data(notification.data)
-        #    if data and data.get('friendship_id') == friendship_id:
-        #        db.session.delete(notification)
-
-        #db.session.commit()
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     

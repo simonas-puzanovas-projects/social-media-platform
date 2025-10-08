@@ -12,13 +12,7 @@ bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
 @bp_index.route('/')
 @login_required
 def index():
-    #posts = db.session.query(Post)\
-    #                    .order_by(Post.created_at.desc())\
-    #                    .limit(50)\
-    #                    .all()
-    #posts_dict = [post.to_dict() for post in posts]
     posts = post_service.query_posts()
-
     return render_template('posts.html', username=session['username'], posts=posts, current_user_id=session['user_id'])
 
 @bp_index.route('/profile/<username>')
@@ -56,7 +50,8 @@ def upload_image():
         friends_query = user_service.get_user_friends(user.id)
         owner_socket_post_data = {
             "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=user.id),
-            "owner": user.username
+            "owner": user.username,
+            "post_id": new_post.id
         }
         socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
 
@@ -64,7 +59,8 @@ def upload_image():
         for friend in friends_query:
             friend_socket_post_data = {
                 "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=friend["id"]),
-                "owner": user.username
+                "owner": user.username,
+                "post_id": new_post.id
             }
             socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
 
@@ -85,4 +81,23 @@ def delete_post():
     
     except Exception as e:
         return jsonify({'success': False, 'message': e}), 404
+
+@bp_index.route("/api/like_post/<post_id>", methods=["POST"])
+@login_required
+def like_post(post_id):
+    try:
+        post_likes = post_service.query_post_likes(post_id)
+
+        #unlike if already liked
+        for like in post_likes:
+            if like.user_id == session["user_id"]:
+                post_service.remove_like(like.id)
+                return f'{len(post_likes)-1}'
+
+        post_service.create_like(session["user_id"], post_id)
+        return f'{len(post_likes)+1}'
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': e}), 404
+
 

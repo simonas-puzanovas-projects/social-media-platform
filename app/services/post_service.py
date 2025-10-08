@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 import uuid
-from ..models import Post, User
+from ..models import Post, User, PostLike
 
 from .user_service import UserService
 from ..services import user_service
@@ -59,6 +59,19 @@ class PostService:
 
             return new_post
 
+    def create_like(self, user_id, post_id):
+        try:
+            new_like = PostLike(
+                user_id = user_id,
+                post_id = post_id
+            )
+            self.db.session.add(new_like)
+            self.db.session.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            raise PostServiceError(e)
+
     def delete_post(self, user_id, post_id):
         post = Post.query.filter_by(id=post_id, owner=user_id).first()
         if not post:
@@ -76,6 +89,30 @@ class PostService:
         except Exception as e:
             self.db.session.rollback()
             raise Exception(e)
+
+    def query_post_likes(self, post_id):
+        return Post.query.get(post_id).likes
+    
+    def is_user_liked(self, user_id, post_id):
+        likes = self.query_post_likes(post_id)
+        for like in likes:
+            if user_id == like.user_id:
+                return True
+        return False
+
+    def remove_like(self, like_id):
+        try:
+            like = PostLike.query.filter_by(id=like_id).first()
+            self.db.session.delete(like)
+            self.db.session.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            raise PostServiceError(e)
+
+
+
+
 
     def validate_image(self, file):
         if file.filename == '':
@@ -103,3 +140,5 @@ class PostService:
         
         except Exception as e:
             raise PostServiceError(str(e))
+
+

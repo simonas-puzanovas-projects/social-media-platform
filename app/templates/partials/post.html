@@ -1,5 +1,4 @@
 
-{%block content%}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='post.css') }}">
 
@@ -25,11 +24,28 @@
 
     <div class="post-footer">
         <div class="post-stats">
-            <span class="post-likes">❤️ 0</span>
+
+            <div class="post-likes-container">
+                <button
+                    id="like-button-{{post_data.id}}"
+                    class="post-likes"
+                    hx-post="/api/like_post/{{ post_data.id }}"
+                    hx-target="#like-count-{{ post_data.id}}"
+                    hx-swap="innerHTML"
+                    >{% set user_liked = username in post_data.likes | map(attribute='username') | list %}
+                    {%if user_liked%}
+                    🩷
+                    {%else%}
+                    🩶
+                    {%endif%}
+                    </button>
+                    <span
+                        id="like-count-{{post_data.id}}"
+                        class="post-likes"
+                    >{{post_data.likes | length}}</span>
+                </div>
+
             <span class="post-comments">💬 0</span>
         </div>
     </div>
 </div>
-
-
-{%endblock%}

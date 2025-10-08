@@ -5,8 +5,11 @@ function init_posts_socket(){
 
         socket.on('new_post', function(data) {
             if (profile_user == data.owner || profile_user == null){
-                var element = document.getElementsByClassName("posts-grid")[0] 
+                var element = document.getElementsByClassName("posts-grid")[0]
                 element.insertAdjacentHTML("afterbegin", data.html)
+                // Process HTMX attributes on the newly added post
+                button = document.getElementById("like-button-"+data.post_id)
+                htmx.process(button);
             }
         });
     }
@@ -48,3 +51,14 @@ function deletePost(postId) {
         showToast('Error deleting post');
     });
 }
+
+document.addEventListener('click', function(e) {
+    if (e.target.id && e.target.id.startsWith('like-button-')) {
+        if (e.target.textContent.trim() == "🩶"){
+            e.target.textContent = "🩷"
+        }
+        else {
+            e.target.textContent = "🩶"
+        }
+    }
+})

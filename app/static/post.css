@@ -93,12 +93,27 @@
 
 .post-stats {
     display: flex;
-    gap: 1rem;
+    gap: 1.3rem;
     align-items: center;
 }
 
+.post-likes-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+.post-likes-container > span{
+    margin: 0;
+
+}
+.post-likes-container > button{
+    border: 0;
+    background: 0;
+}
+
 .post-likes, .post-comments {
-    font-size: 0.9rem;
+    font-size: 1.3rem;
     color: #666;
     display: flex;
     align-items: center;

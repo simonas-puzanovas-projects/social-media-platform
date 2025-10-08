@@ -18,6 +18,8 @@ class User(db.Model):
                                       backref='requested', 
                                       lazy='dynamic')
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
+    post_likes = db.relationship('PostLike', backref = db.backref('user', lazy=True))
+
 
     def to_public_data(self):
         return {
@@ -42,7 +44,7 @@ class Messenger(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     second_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    messages = db.relationship("Message", backref='Message.messenger_id')
+    messages = db.relationship("Message", backref='messenger')
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,6 +54,11 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class PostLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -59,8 +66,17 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     owner_user = db.relationship('User', backref=db.backref('posts', lazy=True))
+    likes = db.relationship("PostLike", backref='post', cascade='all, delete-orphan')
 
     def to_dict(self):
+        likes = [
+            {
+                "user_id": like.user_id,
+                "username": like.user.username     
+            }
+            for like in self.likes
+        ] 
+
         return {
             'id': self.id,
             'owner_id': self.owner,
@@ -68,6 +84,7 @@ class Post(db.Model):
             'image_path': self.image_path,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
+            "likes": likes
         }
 
 class Notification(db.Model):
