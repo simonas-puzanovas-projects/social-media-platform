@@ -1,0 +1,100 @@
+<!-- Single reply item for HTMX insertion -->
+<div class="comment-item reply-item" id="comment-{{ reply.id }}">
+    <div class="comment-header">
+        <span class="comment-author">{{ reply.user.username }}</span>
+        <span class="comment-time">{{ reply.created_at.strftime('%b %d, %Y') }}</span>
+    </div>
+    <div class="comment-content">{{ reply.content }}</div>
+    <div class="comment-actions">
+        {% if reply.reply_count > 0 %}
+        <button
+            class="comment-replies-toggle"
+            onclick="toggleCommentReplies({{ reply.id }})">
+            {{ reply.reply_count }} {{ 'reply' if reply.reply_count == 1 else 'replies' }}
+        </button>
+        {% endif %}
+        <button
+            class="comment-reply-btn"
+            onclick="toggleReplyForm({{ reply.id }}, {{ post_id }})">
+            Reply
+        </button>
+        {% if reply.user_id == current_user_id %}
+        <button
+            class="comment-delete-btn"
+            hx-delete="/api/comment/{{ reply.id }}"
+            hx-target="#comment-{{ reply.id }}"
+            hx-swap="outerHTML"
+            hx-confirm="Delete this reply?">
+            Delete
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Reply form for nested replies (hidden by default) -->
+    <div class="reply-form-container" id="reply-form-{{ reply.id }}" style="display: none;">
+        <form
+            class="reply-form"
+            hx-post="/api/comment/{{ post_id }}"
+            hx-target="#reply-form-inline-{{ parent_id }}"
+            hx-swap="beforebegin">
+            <input type="hidden" name="parent_id" value="{{ parent_id }}">
+            <input
+                type="text"
+                name="comment"
+                placeholder="Write a reply..."
+                required>
+            <button type="submit">Reply</button>
+            <button type="button" onclick="toggleReplyForm({{ reply.id }}, {{ post_id }})">Cancel</button>
+        </form>
+    </div>
+
+    <!-- Nested replies container (will be populated if there are nested replies) -->
+    {% if reply.replies %}
+    <div class="comment-replies" id="comment-replies-{{ reply.id }}" style="display: none;">
+        {% for nested_reply in reply.replies %}
+        <div class="comment-item reply-item" id="comment-{{ nested_reply.id }}">
+            <div class="comment-header">
+                <span class="comment-author">{{ nested_reply.user.username }}</span>
+                <span class="comment-time">{{ nested_reply.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+            <div class="comment-content">{{ nested_reply.content }}</div>
+            <div class="comment-actions">
+                <button
+                    class="comment-reply-btn"
+                    onclick="toggleReplyForm({{ nested_reply.id }}, {{ post_id }})">
+                    Reply
+                </button>
+                {% if nested_reply.user_id == current_user_id %}
+                <button
+                    class="comment-delete-btn"
+                    hx-delete="/api/comment/{{ nested_reply.id }}"
+                    hx-target="#comment-{{ nested_reply.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Delete this reply?">
+                    Delete
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Reply form for deeply nested replies -->
+            <div class="reply-form-container" id="reply-form-{{ nested_reply.id }}" style="display: none;">
+                <form
+                    class="reply-form"
+                    hx-post="/api/comment/{{ post_id }}"
+                    hx-target="#reply-form-inline-{{ parent_id }}"
+                    hx-swap="beforebegin">
+                    <input type="hidden" name="parent_id" value="{{ parent_id }}">
+                    <input
+                        type="text"
+                        name="comment"
+                        placeholder="Write a reply..."
+                        required>
+                    <button type="submit">Reply</button>
+                    <button type="button" onclick="toggleReplyForm({{ nested_reply.id }}, {{ post_id }})">Cancel</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

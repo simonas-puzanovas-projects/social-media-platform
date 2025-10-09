@@ -1,6 +1,10 @@
 from app import app_init, db
 from app.models import User
 from werkzeug.security import generate_password_hash
+from flask_migrate import Migrate
+
+app = app_init()
+migrate = Migrate(app, db)
 
 def init_db():
     with app.app_context():
@@ -18,7 +22,6 @@ def init_db():
 # Socket event handlers
 
 if __name__ == "__main__":
-    app = app_init()
 
     init_db()
 

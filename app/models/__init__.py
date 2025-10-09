@@ -59,6 +59,22 @@ class PostLike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
+class PostComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('post_comment.id'), nullable=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+    parent_comment = db.relationship("PostComment", backref=db.backref('replies', cascade='all, delete-orphan'), remote_side=[id])
+
+    @property
+    def reply_count(self):
+        """Get count of direct replies to this comment"""
+        return len(self.replies) if self.replies else 0
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -67,6 +83,7 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     owner_user = db.relationship('User', backref=db.backref('posts', lazy=True))
     likes = db.relationship("PostLike", backref='post', cascade='all, delete-orphan')
+    comments = db.relationship("PostComment", backref='post', cascade='all, delete-orphan')
 
     def to_dict(self):
         likes = [

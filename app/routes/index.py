@@ -78,9 +78,9 @@ def delete_post():
         post_id = request.json.get('post_id')
         post_service.delete_post(session["user_id"], post_id)
         return jsonify({'success': True, 'message': 'Post deleted successfully'}), 200
-    
+
     except Exception as e:
-        return jsonify({'success': False, 'message': e}), 404
+        return jsonify({'success': False, 'message': str(e)}), 404
 
 @bp_index.route("/api/like_post/<post_id>", methods=["POST"])
 @login_required
@@ -99,5 +99,79 @@ def like_post(post_id):
 
     except Exception as e:
         return jsonify({'success': False, 'message': e}), 404
+
+@bp_index.route("/api/comment/<int:post_id>", methods=["POST"])
+@login_required
+def create_comment(post_id):
+    try:
+        content = request.form.get('comment')
+        parent_id = request.form.get('parent_id')  # For replies
+
+        if parent_id:
+            parent_id = int(parent_id)
+
+        new_comment = post_service.create_comment(
+            user_id=session['user_id'],
+            post_id=post_id,
+            content=content,
+            parent_id=parent_id
+        )
+
+        # If this is a reply to a comment, return just the single reply HTML
+        if parent_id:
+            return render_template('partials/single_reply.html',
+                                 reply=new_comment,
+                                 post_id=post_id,
+                                 parent_id=parent_id,
+                                 current_user_id=session['user_id'])
+
+        # Otherwise return all comments HTML for this post
+        comments = post_service.get_post_comments(post_id)
+        comment_count = post_service.get_comment_count(post_id)
+
+        return render_template('partials/comments.html',
+                             comments=comments,
+                             post_id=post_id,
+                             current_user_id=session['user_id'],
+                             username=session['username'])
+
+    except PostServiceError as e:
+        return f'<div class="error-message">{str(e)}</div>', 400
+    except Exception as e:
+        return f'<div class="error-message">Failed to post comment</div>', 500
+
+@bp_index.route("/api/comments/<int:post_id>", methods=["GET"])
+@login_required
+def get_comments(post_id):
+    try:
+        comments = post_service.get_post_comments(post_id)
+        return render_template('partials/comments.html',
+                             comments=comments,
+                             post_id=post_id,
+                             current_user_id=session['user_id'],
+                             username=session['username'])
+    except Exception as e:
+        return f'<div class="error-message">Failed to load comments</div>', 500
+
+@bp_index.route("/api/comment/<int:comment_id>", methods=["DELETE"])
+@login_required
+def delete_comment(comment_id):
+    try:
+        post_service.delete_comment(session['user_id'], comment_id)
+        return '', 200  # HTMX will remove the element
+    except PostServiceError as e:
+        return f'<div class="error-message">{str(e)}</div>', 403
+    except Exception as e:
+        return f'<div class="error-message">Failed to delete comment</div>', 500
+
+@bp_index.route("/api/comment_count/<int:post_id>", methods=["GET"])
+@login_required
+def get_comment_count(post_id):
+    """Return just the comment count for HTMX swap"""
+    try:
+        count = post_service.get_comment_count(post_id)
+        return f'💬 {count}'
+    except Exception as e:
+        return '💬 0'
 
 

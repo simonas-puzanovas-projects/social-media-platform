@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 import uuid
-from ..models import Post, User, PostLike
+from ..models import Post, User, PostLike, PostComment
 
 from .user_service import UserService
 from ..services import user_service
@@ -92,13 +92,6 @@ class PostService:
 
     def query_post_likes(self, post_id):
         return Post.query.get(post_id).likes
-    
-    def is_user_liked(self, user_id, post_id):
-        likes = self.query_post_likes(post_id)
-        for like in likes:
-            if user_id == like.user_id:
-                return True
-        return False
 
     def remove_like(self, like_id):
         try:
@@ -109,6 +102,83 @@ class PostService:
         except Exception as e:
             self.db.rollback()
             raise PostServiceError(e)
+
+    # Comment methods
+    def create_comment(self, user_id, post_id, content, parent_id=None):
+        """Create a new comment or reply to a comment"""
+        try:
+            if not content or not content.strip():
+                raise PostServiceError("Comment content cannot be empty")
+
+            # Verify post exists
+            post = Post.query.get(post_id)
+            if not post:
+                raise PostServiceError("Post not found")
+
+            # If parent_id provided, verify parent comment exists and belongs to same post
+            if parent_id:
+                parent_comment = PostComment.query.get(parent_id)
+                if not parent_comment or parent_comment.post_id != post_id:
+                    raise PostServiceError("Invalid parent comment")
+
+            new_comment = PostComment(
+                user_id=user_id,
+                post_id=post_id,
+                content=content.strip(),
+                parent_id=parent_id
+            )
+
+            self.db.session.add(new_comment)
+            self.db.session.commit()
+            return new_comment
+
+        except PostServiceError:
+            self.db.session.rollback()
+            raise
+        except Exception as e:
+            self.db.session.rollback()
+            raise PostServiceError(str(e))
+
+    def get_post_comments(self, post_id):
+        """Get all top-level comments for a post with their replies"""
+        try:
+            # Get only top-level comments (parent_id is None)
+            comments = PostComment.query.filter_by(
+                post_id=post_id,
+                parent_id=None
+            ).order_by(PostComment.id.asc()).all()
+
+            return comments
+
+        except Exception as e:
+            raise PostServiceError(str(e))
+
+    def get_comment_count(self, post_id):
+        """Get total count of comments (including replies) for a post"""
+        try:
+            count = PostComment.query.filter_by(post_id=post_id).count()
+            return count
+        except Exception as e:
+            raise PostServiceError(str(e))
+
+    def delete_comment(self, user_id, comment_id):
+        """Delete a comment if user is the owner"""
+        try:
+            comment = PostComment.query.filter_by(id=comment_id, user_id=user_id).first()
+            if not comment:
+                raise PostServiceError("Comment not found or not authorized")
+
+            # Cascade delete will handle replies due to model definition
+            self.db.session.delete(comment)
+            self.db.session.commit()
+            return True
+
+        except PostServiceError:
+            self.db.session.rollback()
+            raise
+        except Exception as e:
+            self.db.session.rollback()
+            raise PostServiceError(str(e))
 
 
 

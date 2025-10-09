@@ -2,7 +2,7 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='post.css') }}">
 
-<div class="post-item" data-post-id="{{ post_data.id }}">
+<div class="post-item" data-post-id="{{ post_data.id }}" id="data-post-id-{{post_data.id}}">
     <div class="post-header">
         <div class="post-author">
             <div class="author-avatar">👤</div>
@@ -21,6 +21,7 @@
     <div class="post-content">
         <img src="{{ url_for('static', filename=post_data.image_path) }}" alt="Post image" class="post-image">
     </div>
+
 
     <div class="post-footer">
         <div class="post-stats">
@@ -45,7 +46,43 @@
                     >{{post_data.likes | length}}</span>
                 </div>
 
-            <span class="post-comments">💬 0</span>
+            <button
+                class="post-comments-toggle post-comments"
+                id="comment-toggle-{{ post_data.id }}"
+                hx-get="/api/comment_count/{{ post_data.id }}"
+                hx-trigger="load"
+                hx-swap="innerHTML"
+                onclick="toggleComments({{ post_data.id }})">
+                💬 0
+            </button>
+        </div>
+    </div>
+
+    <div class="post-comment-section-container" id="comment-section-{{ post_data.id }}" style="display: none;">
+        <!-- Main comment form -->
+        <form
+            id="comment-section-form-{{ post_data.id }}"
+            class="post-comment-section-main-form"
+            hx-post="/api/comment/{{ post_data.id }}"
+            hx-target="#comments-list-{{ post_data.id }}"
+            hx-swap="innerHTML">
+            <input
+                type="text"
+                name="comment"
+                placeholder="Write a comment..."
+                required>
+            <button type="submit">Comment</button>
+        </form>
+
+        <!-- Comments list container -->
+        <div
+            id="comments-container-{{ post_data.id }}"
+            hx-get="/api/comments/{{ post_data.id }}"
+            hx-trigger="load"
+            hx-swap="innerHTML">
+            <div class="comments-list" id="comments-list-{{ post_data.id }}">
+                <div class="loading-comments">No comments.</div>
+            </div>
         </div>
     </div>
 </div>
