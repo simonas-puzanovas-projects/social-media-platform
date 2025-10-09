@@ -2,7 +2,6 @@ var profile_user = null
 
 function init_posts_socket(){
     if (typeof socket !== 'undefined') {
-
         socket.on('new_post', function(data) {
             if (profile_user == data.owner || profile_user == null){
                 var element = document.getElementsByClassName("posts-grid")[0]
@@ -19,27 +18,17 @@ function init_posts_socket(){
 init_posts_socket()
 
 function deletePost(postId) {
-    if (!confirm('Are you sure you want to delete this post?')) {
-        return;
-    }
+    if (!confirm('Are you sure you want to delete this post?')) return;
 
     fetch('/delete_post', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            post_id: postId
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Remove the post element from the DOM
-            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-            if (postElement) {
-                postElement.remove();
-            }
+            document.querySelector(`[data-post-id="${postId}"]`)?.remove();
             showToast('Post deleted successfully');
         } else {
             showToast('Error deleting post: ' + data.message);
@@ -52,120 +41,94 @@ function deletePost(postId) {
 }
 
 document.addEventListener('click', function(e) {
-    if (e.target.id && e.target.id.startsWith('like-button-')) {
-        if (e.target.textContent.trim() == "🩶"){
-            e.target.textContent = "🩷"
-        }
-        else {
-            e.target.textContent = "🩶"
-        }
+    // Like button toggle
+    if (e.target.id?.startsWith('like-button-')) {
+        e.target.textContent = e.target.textContent.trim() == "🩶" ? "🩷" : "🩶";
     }
-})
 
-// Toggle comments section visibility
-function toggleComments(postId) {
-    const commentSection = document.getElementById(`comment-section-${postId}`);
-    if (commentSection) {
-        if (commentSection.style.display === 'none') {
-            commentSection.style.display = 'block';
-        } else {
-            commentSection.style.display = 'none';
-        }
+    // Toggle comments
+    if (e.target.classList.contains('post-comments-toggle')) {
+        const postId = e.target.dataset.postId;
+        const section = document.getElementById(`comment-section-${postId}`);
+        if (section) section.style.display = section.style.display === 'none' ? 'block' : 'none';
     }
-}
 
-// Toggle reply form visibility
-function toggleReplyForm(commentId, postId) {
-    const replyForm = document.getElementById(`reply-form-${commentId}`);
-    if (replyForm) {
-        if (replyForm.style.display === 'none') {
-            replyForm.style.display = 'block';
-            // Focus on the input field
-            const input = replyForm.querySelector('input[name="comment"]');
-            if (input) input.focus();
-        } else {
-            replyForm.style.display = 'none';
-        }
-    }
-}
-
-// Toggle comment replies visibility
-function toggleCommentReplies(commentId) {
-    const repliesSection = document.getElementById(`comment-replies-${commentId}`);
-    const toggleButton = event.target;
-
-    if (repliesSection) {
-        if (repliesSection.style.display === 'none') {
-            repliesSection.style.display = 'flex';
-            // Update button text to indicate expanded state
-            const replyCount = toggleButton.textContent.match(/\d+/)[0];
-            toggleButton.innerHTML = `▼ ${replyCount} ${replyCount == 1 ? 'reply' : 'replies'}`;
-        } else {
-            repliesSection.style.display = 'none';
-            // Update button text to indicate collapsed state
-            const replyCount = toggleButton.textContent.match(/\d+/)[0];
-            toggleButton.innerHTML = `${replyCount} ${replyCount == 1 ? 'reply' : 'replies'}`;
-        }
-    }
-}
-
-// Update comment count after successful comment submission
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    // Check if this was a comment submission (top-level comment)
-    if (event.detail.target.id && event.detail.target.id.startsWith('comments-list-')) {
-        const postId = event.detail.target.id.replace('comments-list-', '');
-
-        // Update comment count
-        const commentToggle = document.getElementById(`comment-toggle-${postId}`);
-        if (commentToggle) {
-            htmx.trigger(commentToggle, 'load');
-        }
-
-        // Clear the main comment form
-        const mainForm = event.detail.target.closest('.post-comment-section-container').querySelector('.post-comment-section-main-form');
-        if (mainForm) {
-            mainForm.reset();
+    // Toggle replies
+    if (e.target.classList.contains('comment-replies-toggle')) {
+        const commentId = e.target.dataset.commentId;
+        const repliesDiv = document.getElementById(`replies-${commentId}`);
+        if (repliesDiv) {
+            const isHidden = repliesDiv.style.display === 'none';
+            repliesDiv.style.display = isHidden ? 'flex' : 'none';
+            const count = e.target.textContent.match(/\d+/)[0];
+            e.target.textContent = `${isHidden ? '▼ ' : ''}${count} ${count == 1 ? 'reply' : 'replies'}`;
         }
     }
 
-    // Check if this was a reply submission (inline reply form)
-    if (event.detail.target.id && event.detail.target.id.startsWith('reply-form-inline-')) {
-        const commentId = event.detail.target.id.replace('reply-form-inline-', '');
-
-        // Clear the inline reply form
-        const form = event.detail.target.querySelector('form');
+    // Toggle reply form
+    if (e.target.classList.contains('comment-reply-btn')) {
+        const commentId = e.target.dataset.commentId;
+        const form = document.getElementById(`reply-form-${commentId}`);
         if (form) {
-            form.reset();
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'block') form.querySelector('input[name="comment"]')?.focus();
+        }
+    }
+
+    // Cancel reply
+    if (e.target.classList.contains('cancel-reply')) {
+        document.getElementById(`reply-form-${e.target.dataset.commentId}`).style.display = 'none';
+    }
+});
+
+function toggleComments(postId) {
+    const section = document.getElementById(`comment-section-${postId}`);
+    if (section) {
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// HTMX after swap handler
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    const target = event.detail.target;
+
+    // Top-level comment added
+    if (target.id?.startsWith('comments-list-')) {
+        const postId = target.id.replace('comments-list-', '');
+        const commentToggle = document.getElementById(`comment-toggle-${postId}`);
+        if (commentToggle) htmx.trigger(commentToggle, 'load');
+
+        const form = target.closest('.post-comment-section-container')?.querySelector('.post-comment-section-main-form');
+        if (form) form.reset();
+    }
+
+    // Reply added
+    if (target.id?.startsWith('replies-')) {
+        const commentId = target.id.replace('replies-', '');
+        const form = document.getElementById(`reply-form-${commentId}`);
+        if (form) {
+            form.style.display = 'none';
+            form.querySelector('form')?.reset();
         }
 
-        // Make sure the replies section is visible
-        const repliesSection = document.getElementById(`comment-replies-${commentId}`);
-        if (repliesSection && repliesSection.style.display === 'none') {
-            repliesSection.style.display = 'flex';
-        }
+        // Show replies section
+        target.style.display = 'flex';
 
-        // Update the reply count button
-        const toggleButton = document.querySelector(`[onclick="toggleCommentReplies(${commentId})"]`);
-        if (toggleButton) {
-            // Extract current count and increment
-            const match = toggleButton.textContent.match(/\d+/);
-            if (match) {
-                const newCount = parseInt(match[0]) + 1;
-                const hasArrow = toggleButton.textContent.includes('▼');
-                toggleButton.innerHTML = `${hasArrow ? '▼ ' : ''}${newCount} ${newCount == 1 ? 'reply' : 'replies'}`;
-            } else {
-                // First reply - create the button
-                toggleButton.innerHTML = `▼ 1 reply`;
-            }
+        // Update or create toggle button
+        const comment = document.getElementById(`comment-${commentId}`);
+        let toggleBtn = comment?.querySelector('.comment-replies-toggle');
+
+        if (toggleBtn) {
+            const count = parseInt(toggleBtn.textContent.match(/\d+/)[0]) + 1;
+            toggleBtn.textContent = `▼ ${count} ${count == 1 ? 'reply' : 'replies'}`;
         } else {
-            // No toggle button exists yet - create one
-            const commentActions = document.querySelector(`#comment-${commentId} > .comment-actions`);
-            if (commentActions) {
-                const newToggleButton = document.createElement('button');
-                newToggleButton.className = 'comment-replies-toggle';
-                newToggleButton.setAttribute('onclick', `toggleCommentReplies(${commentId})`);
-                newToggleButton.innerHTML = '▼ 1 reply';
-                commentActions.insertBefore(newToggleButton, commentActions.firstChild);
+            const actions = comment?.querySelector('.comment-actions');
+            if (actions) {
+                toggleBtn = document.createElement('button');
+                toggleBtn.className = 'comment-replies-toggle';
+                toggleBtn.dataset.commentId = commentId;
+                toggleBtn.textContent = '▼ 1 reply';
+                actions.insertBefore(toggleBtn, actions.firstChild);
             }
         }
     }

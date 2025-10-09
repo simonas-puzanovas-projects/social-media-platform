@@ -1,7 +1,5 @@
-<!-- Macro for rendering a comment and its replies recursively -->
-{% macro render_comment(comment, post_id, current_user_id, root_id=None, is_reply=False) %}
-{% set comment_root_id = root_id or comment.id %}
-<div class="comment-item {% if is_reply %}reply-item{% endif %}" id="comment-{{ comment.id }}">
+{% macro render_comment(comment, post_id, current_user_id, is_reply=False) %}
+<div class="comment-item {% if is_reply %}reply-item{% endif %}" id="comment-{{ comment.id }}" data-comment-id="{{ comment.id }}">
     <div class="comment-header">
         <span class="comment-author">{{ comment.user.username }}</span>
         <span class="comment-time">{{ comment.created_at.strftime('%b %d, %Y') }}</span>
@@ -9,96 +7,33 @@
     <div class="comment-content">{{ comment.content }}</div>
     <div class="comment-actions">
         {% if comment.reply_count > 0 %}
-        <button
-            class="comment-replies-toggle"
-            onclick="toggleCommentReplies({{ comment.id }})">
+        <button class="comment-replies-toggle" data-comment-id="{{ comment.id }}">
             {{ comment.reply_count }} {{ 'reply' if comment.reply_count == 1 else 'replies' }}
         </button>
         {% endif %}
-        <button
-            class="comment-reply-btn"
-            onclick="toggleReplyForm({{ comment.id }}, {{ post_id }})">
-            Reply
-        </button>
+        <button class="comment-reply-btn" data-comment-id="{{ comment.id }}" data-post-id="{{ post_id }}">Reply</button>
         {% if comment.user_id == current_user_id %}
-        <button
-            class="comment-delete-btn"
-            hx-delete="/api/comment/{{ comment.id }}"
-            hx-target="#comment-{{ comment.id }}"
-            hx-swap="outerHTML"
-            hx-confirm="Delete this comment?">
-            Delete
-        </button>
+        <button class="comment-delete-btn" hx-delete="/api/comment/{{ comment.id }}" hx-target="#comment-{{ comment.id }}" hx-swap="outerHTML" hx-confirm="Delete?">Delete</button>
         {% endif %}
     </div>
 
-    <!-- Reply form (hidden by default) -->
     <div class="reply-form-container" id="reply-form-{{ comment.id }}" style="display: none;">
-        <form
-            class="reply-form"
-            hx-post="/api/comment/{{ post_id }}"
-            hx-target="#reply-form-inline-{{ comment.id }}"
-            hx-swap="beforebegin">
+        <form class="reply-form" hx-post="/api/comment/{{ post_id }}" hx-target="#replies-{{ comment.id }}" hx-swap="beforeend">
             <input type="hidden" name="parent_id" value="{{ comment.id }}">
-            <input
-                type="text"
-                name="comment"
-                placeholder="Write a reply..."
-                required>
+            <input type="text" name="comment" placeholder="Write a reply..." required>
             <button type="submit">Reply</button>
-            <button type="button" onclick="toggleReplyForm({{ comment.id }}, {{ post_id }})">Cancel</button>
+            <button type="button" class="cancel-reply" data-comment-id="{{ comment.id }}">Cancel</button>
         </form>
     </div>
 
-    <!-- Nested replies container -->
-    {% if comment.replies %}
-    <div class="comment-replies" id="comment-replies-{{ comment.id }}" style="display: none;">
+    <div class="comment-replies" id="replies-{{ comment.id }}" style="{% if comment.reply_count > 0 %}display: none;{% else %}display: none;{% endif %}">
         {% for reply in comment.replies %}
-            {{ render_comment(reply, post_id, current_user_id, root_id=comment_root_id, is_reply=True) }}
+            {{ render_comment(reply, post_id, current_user_id, is_reply=True) }}
         {% endfor %}
-
-        <!-- Inline reply form for adding more replies -->
-        <div class="reply-form-container-inline" id="reply-form-inline-{{ comment.id }}">
-            <form
-                class="reply-form"
-                hx-post="/api/comment/{{ post_id }}"
-                hx-target="#reply-form-inline-{{ comment.id }}"
-                hx-swap="beforebegin">
-                <input type="hidden" name="parent_id" value="{{ comment.id }}">
-                <input
-                    type="text"
-                    name="comment"
-                    placeholder="Write a reply..."
-                    required>
-                <button type="submit">Reply</button>
-            </form>
-        </div>
     </div>
-    {% else %}
-    <!-- Empty replies container for future replies -->
-    <div class="comment-replies" id="comment-replies-{{ comment.id }}" style="display: none;">
-        <!-- Inline reply form for adding first reply -->
-        <div class="reply-form-container-inline" id="reply-form-inline-{{ comment.id }}">
-            <form
-                class="reply-form"
-                hx-post="/api/comment/{{ post_id }}"
-                hx-target="#reply-form-inline-{{ comment.id }}"
-                hx-swap="beforebegin">
-                <input type="hidden" name="parent_id" value="{{ comment.id }}">
-                <input
-                    type="text"
-                    name="comment"
-                    placeholder="Write a reply..."
-                    required>
-                <button type="submit">Reply</button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endmacro %}
 
-<!-- Comments section for a post -->
 <div class="comments-list" id="comments-list-{{ post_id }}">
     {% if comments %}
         {% for comment in comments %}
