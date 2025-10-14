@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, request, jsonify
+from flask import Blueprint, render_template, session, request, jsonify, redirect
 from .. import socketio
 from ..decorators import login_required
 import os
@@ -7,13 +7,12 @@ from ..services.user_service import UserServiceError
 from ..services.post_service import PostServiceError
 from ..services import user_service, post_service
 
-bp_index = Blueprint("bp_index", __name__, template_folder="../templates")
+bp_index = Blueprint("bp_index", __name__)
 
 @bp_index.route('/')
 @login_required
 def index():
-    posts = post_service.query_posts()
-    return render_template('posts.html', username=session['username'], posts=posts, current_user_id=session['user_id'])
+    return jsonify({"success": True})
 
 @bp_index.route('/profile/<username>')
 @login_required
@@ -56,13 +55,13 @@ def upload_image():
         socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
 
         # Send to friends without delete button
-        for friend in friends_query:
-            friend_socket_post_data = {
-                "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=friend["id"]),
-                "owner": user.username,
-                "post_id": new_post.id
-            }
-            socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
+       # for friend in friends_query:
+       #     friend_socket_post_data = {
+       #         "html": render_template("partials/post.html", username=session['username'], post_data=new_post.to_dict(), current_user_id=friend["id"]),
+       #         "owner": user.username,
+       #         "post_id": new_post.id
+       #     }
+       #     socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
 
         return jsonify({
             'success': True,

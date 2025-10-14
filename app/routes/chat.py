@@ -4,84 +4,154 @@ from ..decorators import login_required
 from .. import db, socketio
 from ..services import user_service
 
-bp_chat = Blueprint("bp_chat", __name__, template_folder="../templates")
+bp_chat = Blueprint("bp_chat", __name__)
 
-@bp_chat.route("/chat")
+@bp_chat.route("/api/friend_list")
 @login_required
-def chat():
-    friends_data = user_service.get_user_friends(session["user_id"])
-    return render_template('chat.html', friends=friends_data)
+def get_friend_list():
+    """Get friends list with last message info for messenger"""
+    current_user_id = session["user_id"]
+    friends = user_service.get_user_friends(current_user_id)
 
-@bp_chat.route("/chat/send_message", methods=['POST'])
+    # Enhance friends data with last message information
+    friends_with_messages = []
+    for friend in friends:
+        friend_id = friend['id']
+
+        # Find the messenger between current user and friend
+        messenger = db.session.query(Messenger).filter(
+            ((Messenger.first_user_id == current_user_id) & (Messenger.second_user_id == friend_id)) |
+            ((Messenger.first_user_id == friend_id) & (Messenger.second_user_id == current_user_id))
+        ).first()
+
+        last_message = None
+        last_message_time = None
+
+        if messenger:
+            # Get the last message in this conversation
+            latest_msg = db.session.query(Message).filter(
+                Message.messenger_id == messenger.id
+            ).order_by(Message.created_at.desc()).first()
+
+            if latest_msg:
+                last_message = latest_msg.content
+                last_message_time = latest_msg.created_at.strftime("%H:%M")
+
+        friends_with_messages.append({
+            'id': friend['id'],
+            'username': friend['username'],
+            'is_online': friend['is_online'],
+            'last_message': last_message or 'No messages yet',
+            'timestamp': last_message_time or '',
+            'messenger_id': messenger.id if messenger else None
+        })
+
+    return jsonify(friends_with_messages)
+
+@bp_chat.route("/api/messages/<int:friend_id>")
 @login_required
+def get_messages(friend_id):
+    """Get all messages between current user and a friend"""
+    current_user_id = session["user_id"]
 
-def send_message():
+    # Find the messenger between current user and friend
+    messenger = db.session.query(Messenger).filter(
+        ((Messenger.first_user_id == current_user_id) & (Messenger.second_user_id == friend_id)) |
+        ((Messenger.first_user_id == friend_id) & (Messenger.second_user_id == current_user_id))
+    ).first()
+
+    if not messenger:
+        # Create a new messenger if one doesn't exist
+        messenger = Messenger(
+            first_user_id=current_user_id,
+            second_user_id=friend_id
+        )
+        db.session.add(messenger)
+        db.session.commit()
+
+    # Get all messages in this conversation
+    messages_with_users = db.session.query(Message, User.username)\
+                                   .join(User, Message.sender_id == User.id)\
+                                   .filter(Message.messenger_id == messenger.id)\
+                                   .order_by(Message.created_at.asc())\
+                                   .all()
+
+    messages_data = []
+    for message, sender_username in messages_with_users:
+        messages_data.append({
+            "id": message.id,
+            "sender_id": message.sender_id,
+            "sender": sender_username,
+            "content": message.content,
+            "created_at": message.created_at.strftime("%H:%M")
+        })
+
+    # Get friend info
+    friend = db.session.query(User).get(friend_id)
+
+    return jsonify({
+        'messages': messages_data,
+        'messenger_id': messenger.id,
+        'friend': {
+            'id': friend.id,
+            'username': friend.username,
+            'is_online': friend.is_online
+        }
+    })
+
+@bp_chat.route("/api/send_message", methods=['POST'])
+@login_required
+def send_message_api():
+    """Send a message via JSON API"""
     current_user_id = session['user_id']
-    friend = db.session.query(User).filter(User.username == request.form.get("friend_username")).first()
+    data = request.get_json()
 
+    friend_id = data.get('friend_id')
+    content = data.get('content')
+
+    if not friend_id or not content:
+        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+
+    friend = db.session.query(User).get(friend_id)
     if not friend:
         return jsonify({'success': False, 'message': 'Friend not found'}), 404
 
-    friend_id = friend.id
-
+    # Find or create messenger
     messenger = db.session.query(Messenger).filter(
-        (current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id) |
-        (friend_id == Messenger.first_user_id) & (current_user_id == Messenger.second_user_id)
-        ).first()
+        ((current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id)) |
+        ((friend_id == Messenger.first_user_id) & (current_user_id == Messenger.second_user_id))
+    ).first()
+
+    if not messenger:
+        messenger = Messenger(
+            first_user_id=current_user_id,
+            second_user_id=friend_id
+        )
+        db.session.add(messenger)
+        db.session.flush()
 
     new_message = Message(
-        sender_id = current_user_id,
-        receiver_id = friend_id,
-        messenger_id = messenger.id,
-        content = request.form.get("content")
+        sender_id=current_user_id,
+        receiver_id=friend_id,
+        messenger_id=messenger.id,
+        content=content
     )
     db.session.add(new_message)
     db.session.commit()
 
+    current_user = db.session.query(User).get(current_user_id)
+
     message_json = {
+        'id': new_message.id,
         'content': new_message.content,
-        'sender': db.session.query(User).get(session["user_id"]).username,
-        "chat_id": messenger.id
+        'sender': current_user.username,
+        'sender_id': current_user_id,
+        'chat_id': messenger.id,
+        'created_at': new_message.created_at.strftime("%H:%M")
     }
 
     socketio.emit("new_message", message_json, room=f'user_{friend_id}')
-    socketio.emit("new_message", message_json, room=f'user_{session["user_id"]}')
+    socketio.emit("new_message", message_json, room=f'user_{current_user_id}')
 
-    return jsonify({'success': True, 'message': 'message sent'}), 200
-
-@bp_chat.route("/chat/open/<username>")
-@login_required
-def open_chat(username):
-
-    friend_id = 0
-    current_user_id = session["user_id"]
-
-    friends_list = user_service.get_user_friends(session["user_id"])
-
-    for friend in friends_list:
-        if username == friend["username"]:
-            friend_id = friend["id"]
-
-    messenger = db.session.query(Messenger).filter(
-        (current_user_id == Messenger.first_user_id) & (friend_id == Messenger.second_user_id) |
-        (friend_id == Messenger.first_user_id) & (current_user_id == Messenger.second_user_id)
-        ).first()
-    
-    if messenger:
-        # Optimize with a single query using JOIN to avoid N+1 problem
-        messages_with_users = db.session.query(Message, User.username)\
-                                       .join(User, Message.sender_id == User.id)\
-                                       .filter(Message.messenger_id == messenger.id)\
-                                       .order_by(Message.created_at.asc())\
-                                       .all()
-
-        json_data = []
-        for message, sender_username in messages_with_users:
-            json_data.append({
-                "sender": sender_username,
-                "content": message.content
-            })
-
-        return render_template("partials/chat_messenger.html", friend_username = username, messages = json_data, chat_id=messenger.id)
-
+    return jsonify({'success': True, 'message': message_json}), 200
 

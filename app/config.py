@@ -13,6 +13,11 @@ class Config:
     # CORS configuration
     CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5000,http://127.0.0.1:5000').split(',')
 
+    # Session cookie configuration
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+
     # Upload configuration
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'app/static/uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 10485760))  # 10MB default
@@ -24,8 +29,12 @@ class DevelopmentConfig(Config):
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5000",
         "http://127.0.0.1:5000",
-        "http://0.0.0.0:5000"
+        "http://0.0.0.0:5000",
+        "http://localhost:5173",
+        "http://localhost:4173"
     ]
+    # For development, allow cookies without HTTPS
+    SESSION_COOKIE_SECURE = False
 
 class ProductionConfig(Config):
     """Production configuration"""

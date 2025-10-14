@@ -41,26 +41,29 @@ function deletePost(postId) {
 }
 
 document.addEventListener('click', function(e) {
-    // Like button toggle
-    if (e.target.id?.startsWith('like-button-')) {
-        e.target.textContent = e.target.textContent.trim() == "🩶" ? "🩷" : "🩶";
+    // Like button toggle - now handled by the span inside
+    if (e.target.closest('#like-button-' + e.target.closest('button')?.id?.replace('like-button-', ''))) {
+        // Animation is handled by Tailwind classes in HTML
     }
 
     // Toggle comments
     if (e.target.classList.contains('post-comments-toggle')) {
         const postId = e.target.dataset.postId;
         const section = document.getElementById(`comment-section-${postId}`);
-        if (section) section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        if (section) {
+            section.classList.toggle('hidden');
+        }
     }
 
     // Toggle replies
     if (e.target.classList.contains('comment-replies-toggle')) {
         const commentId = e.target.dataset.commentId;
-        const repliesDiv = document.getElementById(`replies-${commentId}`);
-        if (repliesDiv) {
-            const isHidden = repliesDiv.style.display === 'none';
-            repliesDiv.style.display = isHidden ? 'flex' : 'none';
+        const repliesContainer = document.getElementById(`replies-container-${commentId}`);
+        if (repliesContainer) {
+            const isHidden = repliesContainer.classList.contains('hidden');
+            repliesContainer.classList.toggle('hidden');
             const count = e.target.textContent.match(/\d+/)[0];
+            // If was hidden and now shown, add arrow. If was shown and now hidden, remove arrow
             e.target.textContent = `${isHidden ? '▼ ' : ''}${count} ${count == 1 ? 'reply' : 'replies'}`;
         }
     }
@@ -70,21 +73,24 @@ document.addEventListener('click', function(e) {
         const commentId = e.target.dataset.commentId;
         const form = document.getElementById(`reply-form-${commentId}`);
         if (form) {
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-            if (form.style.display === 'block') form.querySelector('input[name="comment"]')?.focus();
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+                form.querySelector('input[name="comment"]')?.focus();
+            }
         }
     }
 
     // Cancel reply
     if (e.target.classList.contains('cancel-reply')) {
-        document.getElementById(`reply-form-${e.target.dataset.commentId}`).style.display = 'none';
+        const form = document.getElementById(`reply-form-${e.target.dataset.commentId}`);
+        if (form) form.classList.add('hidden');
     }
 });
 
 function toggleComments(postId) {
     const section = document.getElementById(`comment-section-${postId}`);
     if (section) {
-        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        section.classList.toggle('hidden');
     }
 }
 
@@ -107,12 +113,15 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
         const commentId = target.id.replace('replies-', '');
         const form = document.getElementById(`reply-form-${commentId}`);
         if (form) {
-            form.style.display = 'none';
+            form.classList.add('hidden');
             form.querySelector('form')?.reset();
         }
 
-        // Show replies section
-        target.style.display = 'flex';
+        // Show replies section - the parent container
+        const repliesContainer = document.getElementById(`replies-container-${commentId}`);
+        if (repliesContainer) {
+            repliesContainer.classList.remove('hidden');
+        }
 
         // Update or create toggle button
         const comment = document.getElementById(`comment-${commentId}`);
@@ -122,10 +131,10 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
             const count = parseInt(toggleBtn.textContent.match(/\d+/)[0]) + 1;
             toggleBtn.textContent = `▼ ${count} ${count == 1 ? 'reply' : 'replies'}`;
         } else {
-            const actions = comment?.querySelector('.comment-actions');
+            const actions = comment?.querySelector('.flex.gap-3.items-center');
             if (actions) {
                 toggleBtn = document.createElement('button');
-                toggleBtn.className = 'comment-replies-toggle';
+                toggleBtn.className = 'text-xs font-semibold text-primary hover:text-secondary transition-colors duration-200 comment-replies-toggle';
                 toggleBtn.dataset.commentId = commentId;
                 toggleBtn.textContent = '▼ 1 reply';
                 actions.insertBefore(toggleBtn, actions.firstChild);

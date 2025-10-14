@@ -1,24 +1,60 @@
-<div class="comment-item reply-item" id="comment-{{ reply.id }}" data-comment-id="{{ reply.id }}">
-    <div class="comment-header">
-        <span class="comment-author">{{ reply.user.username }}</span>
-        <span class="comment-time">{{ reply.created_at.strftime('%b %d, %Y') }}</span>
+<div class="ml-6 pl-4 border-l-2 border-gray-200 bg-white rounded-xl shadow-md p-4 mb-3 hover:shadow-xl transition-all duration-300 animate-slide-up reply-item"
+     id="comment-{{ reply.id }}"
+     data-comment-id="{{ reply.id }}">
+
+    <!-- Reply Header -->
+    <div class="flex justify-between items-center mb-2">
+        <span class="font-semibold text-gray-800 text-sm">{{ reply.user.username }}</span>
+        <span class="text-xs text-gray-500">{{ reply.created_at.strftime('%b %d, %Y') }}</span>
     </div>
-    <div class="comment-content">{{ reply.content }}</div>
-    <div class="comment-actions">
-        <button class="comment-reply-btn" data-comment-id="{{ reply.id }}" data-post-id="{{ post_id }}">Reply</button>
+
+    <!-- Reply Content -->
+    <div class="text-gray-700 text-sm mb-3 break-words leading-relaxed">{{ reply.content }}</div>
+
+    <!-- Reply Actions -->
+    <div class="flex gap-3 items-center">
+        <button class="text-xs text-gray-600 hover:text-primary transition-colors duration-200 comment-reply-btn"
+                data-comment-id="{{ reply.id }}"
+                data-post-id="{{ post_id }}">
+            Reply
+        </button>
         {% if reply.user_id == current_user_id %}
-        <button class="comment-delete-btn" hx-delete="/api/comment/{{ reply.id }}" hx-target="#comment-{{ reply.id }}" hx-swap="outerHTML" hx-confirm="Delete?">Delete</button>
+        <button class="text-xs text-gray-600 hover:text-red-500 hover:animate-wiggle transition-all duration-200 comment-delete-btn"
+                hx-delete="/api/comment/{{ reply.id }}"
+                hx-target="#comment-{{ reply.id }}"
+                hx-swap="outerHTML"
+                hx-confirm="Delete?">
+            Delete
+        </button>
         {% endif %}
     </div>
 
-    <div class="reply-form-container" id="reply-form-{{ reply.id }}" style="display: none;">
-        <form class="reply-form" hx-post="/api/comment/{{ post_id }}" hx-target="#replies-{{ reply.id }}" hx-swap="beforeend">
+    <!-- Reply Form Container -->
+    <div class="hidden mt-3 animate-slide-up reply-form-container" id="reply-form-{{ reply.id }}">
+        <form class="flex gap-2 p-3 bg-gray-50 rounded-lg reply-form"
+              hx-post="/api/comment/{{ post_id }}"
+              hx-target="#replies-{{ reply.id }}"
+              hx-swap="beforeend">
             <input type="hidden" name="parent_id" value="{{ reply.id }}">
-            <input type="text" name="comment" placeholder="Write a reply..." required>
-            <button type="submit">Reply</button>
-            <button type="button" class="cancel-reply" data-comment-id="{{ reply.id }}">Cancel</button>
+            <input type="text"
+                   name="comment"
+                   placeholder="Write a reply..."
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300"
+                   required>
+            <button type="submit"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full text-sm font-medium hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300">
+                Reply
+            </button>
+            <button type="button"
+                    class="px-4 py-2 bg-gray-400 text-white rounded-full text-sm font-medium hover:bg-gray-500 active:scale-95 transition-all duration-200 cancel-reply"
+                    data-comment-id="{{ reply.id }}">
+                Cancel
+            </button>
         </form>
     </div>
 
-    <div class="comment-replies" id="replies-{{ reply.id }}" style="display: none;"></div>
+    <!-- Nested Replies Container -->
+    <div class="mt-3 hidden comment-replies-container" id="replies-container-{{ reply.id }}">
+        <div class="flex flex-col gap-2" id="replies-{{ reply.id }}"></div>
+    </div>
 </div>

@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+@source "./lib/**/*.svelte";
+@source "./routes/**/*.svelte";

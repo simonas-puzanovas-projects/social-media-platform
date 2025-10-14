@@ -1,47 +1,49 @@
-from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify, make_response
 from ..services.user_service import UserServiceError
 from ..services import user_service
+import json
 
-bp_auth = Blueprint("bp_auth", __name__, template_folder = "../templates")
+bp_auth = Blueprint("bp_auth", __name__)
 
-@bp_auth.route('/login', methods=['GET', 'POST'])
+@bp_auth.route('/api/signin', methods=['POST'])
 def login():
 
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form['username']
+    password = request.form['password']
 
-        try:
-            user = user_service.authenticate_user(username, password)
+    try:
+        user = user_service.authenticate_user(username, password)
 
-        except UserServiceError as error:
-            return jsonify({'success': False, 'message': str(error)})
-        
-        session['user_id'] = user.id
-        session['username'] = user.username
-
-        return redirect(url_for('bp_index.index'))
+    except UserServiceError as error:
+        return jsonify({'success': False, 'message': str(error)})
     
-    if 'user_id' in session:
-        return redirect(url_for("bp_index.index"))
+    session['user_id'] = user.id
+    session['username'] = user.username
 
-    return render_template('login.html')
+    print(request, session)
+    return jsonify({"success": True})
 
-@bp_auth.route('/register', methods=['GET', 'POST'])
+@bp_auth.route('/api/signup', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form['username']
+    password = request.form['password']
 
-        try:
-            user_service.create_user(username, password)
+    try: user_service.create_user(username, password)
 
-        except UserServiceError as error:
-            return jsonify({'success': False, 'message': str(error)})
-
-        return redirect(url_for('bp_auth.login'))
+    except UserServiceError as error:
+        return jsonify({'success': False, 'message': str(error)})
     
-    return render_template('login.html')
+    return jsonify({"success": True})
+
+@bp_auth.route('/api/current_user')
+def get_current_user():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    return jsonify({
+        'id': session['user_id'],
+        'username': session['username']
+    })
 
 @bp_auth.route('/logout')
 def logout():

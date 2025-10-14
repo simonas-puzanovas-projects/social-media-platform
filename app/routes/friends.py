@@ -6,7 +6,7 @@ from ..decorators import login_required
 from .. import db
 from ..services import user_service, friendship_service, notification_service
 
-bp_friends = Blueprint("bp_friends", __name__, template_folder="../templates")
+bp_friends = Blueprint("bp_friends", __name__)
 
 @bp_friends.route('/friends')
 @login_required

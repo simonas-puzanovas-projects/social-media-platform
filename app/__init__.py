@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 import os
+from flask_cors import CORS
+
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -20,16 +22,18 @@ def app_init():
     from .services import init_services
     init_services(db)
 
-    # Use configured CORS origins instead of wildcard
+ # Use configured CORS origins instead of wildcard
     cors_origins = app.config.get('CORS_ALLOWED_ORIGINS', ['http://localhost:5000'])
     print(f"Config name: {config_name}")
     print(f"CORS origins: {cors_origins}")
+
+    CORS(app, supports_credentials=True, origins=cors_origins)
 
     # For development, disable CORS entirely if needed
     if config_name == 'development':
         socketio.init_app(app, cors_allowed_origins="*")
     else:
-        socketio.init_app(app, cors_allowed_origins=cors_origins)
+        socketio.init_app(app, cors_allowed_origins=cors_origins)   
 
     from .routes import bp_auth
     from .routes import bp_index
