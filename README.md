@@ -62,15 +62,22 @@ This is a full-featured web-based social media platform built with Flask that pr
 
 ## Technology Stack
 
+### Backend
 - **Backend Framework**: Flask 3.0.0 (Python)
 - **Database**: SQLite with SQLAlchemy 3.1.1 ORM
 - **Real-time Communication**: Flask-SocketIO 5.3.6 for WebSocket connections
 - **Image Processing**: Pillow 10.0.1 for image validation and processing
 - **Security**: Werkzeug 3.0.1 for password hashing and secure filename handling
 - **Configuration**: python-dotenv 1.0.0 for environment management
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
-- **UI/UX**: Custom responsive CSS with modern design patterns
 - **File Storage**: Local filesystem with secure upload handling
+
+### Frontend
+- **Framework**: SvelteKit 2.43.2 with Svelte 5
+- **Build Tool**: Vite 7.1.7
+- **Styling**: TailwindCSS 4.1.13
+- **Language**: TypeScript 5.9.2
+- **Real-time**: Socket.IO Client 4.8.1
+- **Linting**: ESLint 9 with Svelte plugin
 
 ## Database Models
 
@@ -212,11 +219,18 @@ social-media-platform/
 
 ### Prerequisites
 - Python 3.8+ (recommended: Python 3.11+)
+- Node.js 18+ and npm (for frontend)
 - pip (Python package manager)
 
 ### Installation Steps
 
-1. **Clone or Download** the project to your local machine
+#### Backend Setup
+
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd social-media-platform
+   ```
 
 2. **Create Virtual Environment**
    ```bash
@@ -227,7 +241,7 @@ social-media-platform/
    - **Windows**: `venv\Scripts\activate`
    - **Linux/Mac**: `source venv/bin/activate`
 
-4. **Install Dependencies**
+4. **Install Python Dependencies**
    ```bash
    pip install -r requirements.txt
    ```
@@ -243,7 +257,7 @@ social-media-platform/
    mkdir -p app/static/uploads
    ```
 
-7. **Run Application**
+7. **Run Backend Server**
    ```bash
    python main.py
    ```
@@ -252,10 +266,37 @@ social-media-platform/
    - Automatically create the SQLite database
    - Set up all required tables (User, Friendship, Post, Message, etc.)
    - Create a default admin user (`admin` / `password123`)
+   - Start Flask server on `http://localhost:5000`
 
-8. **Access Application**
-   - Open your browser to: `http://localhost:5000` or `http://127.0.0.1:5000`
-   - Register a new account or use the admin credentials
+#### Frontend Setup
+
+1. **Navigate to Frontend Directory**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install Node Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Run Frontend Development Server**
+   ```bash
+   npm run dev
+   ```
+
+   The frontend will start on `http://localhost:5173` (or another port if 5173 is busy)
+
+4. **Build for Production** (optional)
+   ```bash
+   npm run build
+   ```
+
+#### Access the Application
+
+- **Frontend**: Open your browser to `http://localhost:5173`
+- **Backend API**: Available at `http://localhost:5000`
+- Register a new account or use the admin credentials (`admin` / `password123`)
 
 ### Configuration Notes
 
