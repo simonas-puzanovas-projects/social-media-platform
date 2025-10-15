@@ -39,6 +39,15 @@
 
 	function selectContact(contactId: number) {
 		selectedContactId = contactId;
+
+		// Clear unread count for selected contact
+		const contact = contacts.find(c => c.id === contactId);
+		if (contact) {
+			contact.unreadCount = 0;
+			// Trigger reactive update
+			contacts = contacts;
+		}
+
 		dispatch('selectContact', contactId);
 	}
 
@@ -65,7 +74,8 @@
 				isPinned: false, // You can implement pinning logic later
 				isOnline: friend.is_online,
 				avatarColor: "from-blue-400 to-indigo-400",
-				messenger_id: friend.messenger_id
+				messenger_id: friend.messenger_id,
+				unreadCount: friend.unread_count || 0
 			}));
 
 			loading = false;
@@ -90,6 +100,11 @@
 			contact.lastMessage = content;
 			contact.timestamp = timestamp;
 
+			// Increment unread count if message is not from selected contact
+			if (selectedContactId !== senderId) {
+				contact.unreadCount = (contact.unreadCount || 0) + 1;
+			}
+
 			// Remove contact from current position
 			contacts.splice(contactIndex, 1);
 
@@ -108,6 +123,15 @@
 
 		// Listen for new messages
 		socket.on('new_message', handleNewMessage);
+
+		// Listen for messages marked as read
+		socket.on('messages_read', (data: any) => {
+			const contact = contacts.find(c => c.id === data.friend_id);
+			if (contact) {
+				contact.unreadCount = 0;
+				contacts = contacts;
+			}
+		});
 	});
 
 	onDestroy(() => {
@@ -189,11 +213,18 @@
 									<h3 class="font-semibold text-gray-900 text-[13px] truncate">
 										{contact.name}
 									</h3>
-									<span class="text-[11px] text-gray-400 ml-2 flex-shrink-0">
-										{contact.timestamp}
-									</span>
+									<div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
+										<span class="text-[11px] text-gray-400">
+											{contact.timestamp}
+										</span>
+										{#if contact.unreadCount > 0}
+											<span class="bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+												{contact.unreadCount}
+											</span>
+										{/if}
+									</div>
 								</div>
-								<p class="text-[13px] text-gray-500 truncate leading-tight">
+								<p class="text-[13px] truncate leading-tight" class:text-gray-900={contact.unreadCount > 0} class:font-semibold={contact.unreadCount > 0} class:text-gray-500={contact.unreadCount === 0}>
 									{contact.lastMessage}
 								</p>
 							</div>
@@ -231,9 +262,16 @@
 									<h3 class="font-semibold text-gray-900 text-[13px] truncate">
 										{contact.name}
 									</h3>
-									<span class="text-[11px] text-gray-400 ml-2 flex-shrink-0">
-										{contact.timestamp}
-									</span>
+									<div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
+										<span class="text-[11px] text-gray-400">
+											{contact.timestamp}
+										</span>
+										{#if contact.unreadCount > 0}
+											<span class="bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+												{contact.unreadCount}
+											</span>
+										{/if}
+									</div>
 								</div>
 								<div class="flex items-center gap-1.5">
 									{#if contact.isVoiceMessage}
@@ -241,7 +279,7 @@
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
 										</svg>
 									{/if}
-									<p class="text-[13px] text-gray-500 truncate leading-tight">
+									<p class="text-[13px] truncate leading-tight" class:text-gray-900={contact.unreadCount > 0} class:font-semibold={contact.unreadCount > 0} class:text-gray-500={contact.unreadCount === 0}>
 										{contact.lastMessage}
 									</p>
 								</div>

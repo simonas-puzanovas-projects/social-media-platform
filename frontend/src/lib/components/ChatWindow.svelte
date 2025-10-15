@@ -9,6 +9,7 @@
 		sender_id: number;
 		sender: string;
 		content: string;
+		is_read: boolean;
 		created_at: string;
 	}
 
@@ -49,6 +50,11 @@
 			friend = data.friend;
 			messengerId = data.messenger_id;
 			loading = false;
+
+			// Mark messages as read
+			if (socket && friendId) {
+				socket.emit('mark_read', { friend_id: friendId });
+			}
 
 			// Scroll to bottom after messages load
 			setTimeout(scrollToBottom, 100);
@@ -138,11 +144,29 @@
 						sender_id: data.sender_id,
 						sender: data.sender,
 						content: data.content,
+						is_read: data.is_read,
 						created_at: data.created_at
 					}];
 					setTimeout(scrollToBottom, 50);
+
+					// Mark as read if we're viewing this chat
+					if (socket && selectedFriendId) {
+						socket.emit('mark_read', { friend_id: selectedFriendId });
+					}
 				}
 			}
+		});
+
+		socket.on('messages_read', (data: any) => {
+			console.log('Messages read event received:', data);
+			// Update is_read status for messages that were read
+			const messageIds = data.message_ids || [];
+			messages = messages.map(msg => {
+				if (messageIds.includes(msg.id)) {
+					return { ...msg, is_read: true };
+				}
+				return msg;
+			});
 		});
 	});
 
@@ -214,7 +238,14 @@
 									<div class="px-4 py-2 rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'}">
 										<p class="text-sm break-words">{message.content}</p>
 									</div>
-									<span class="text-xs text-gray-400 mt-1 px-1">{message.created_at}</span>
+									<div class="flex items-center gap-1 mt-1 px-1">
+										<span class="text-xs text-gray-400">{message.created_at}</span>
+										{#if message.sender_id === currentUserId && message.is_read}
+											<svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+											</svg>
+										{/if}
+									</div>
 								</div>
 							</div>
 						</div>

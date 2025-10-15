@@ -26,6 +26,7 @@ def get_friend_list():
 
         last_message = None
         last_message_time = None
+        unread_count = 0
 
         if messenger:
             # Get the last message in this conversation
@@ -37,13 +38,21 @@ def get_friend_list():
                 last_message = latest_msg.content
                 last_message_time = latest_msg.created_at.strftime("%H:%M")
 
+            # Count unread messages from this friend
+            unread_count = db.session.query(Message).filter(
+                Message.messenger_id == messenger.id,
+                Message.receiver_id == current_user_id,
+                Message.is_read == False
+            ).count()
+
         friends_with_messages.append({
             'id': friend['id'],
             'username': friend['username'],
             'is_online': friend['is_online'],
             'last_message': last_message or 'No messages yet',
             'timestamp': last_message_time or '',
-            'messenger_id': messenger.id if messenger else None
+            'messenger_id': messenger.id if messenger else None,
+            'unread_count': unread_count
         })
 
     return jsonify(friends_with_messages)
@@ -77,14 +86,27 @@ def get_messages(friend_id):
                                    .all()
 
     messages_data = []
+    marked_read_ids = []
     for message, sender_username in messages_with_users:
         messages_data.append({
             "id": message.id,
             "sender_id": message.sender_id,
             "sender": sender_username,
             "content": message.content,
+            "is_read": message.is_read,
             "created_at": message.created_at.strftime("%H:%M")
         })
+
+        # Mark message as read if current user is the receiver
+        if message.receiver_id == current_user_id and not message.is_read:
+            message.is_read = True
+            marked_read_ids.append(message.id)
+
+    db.session.commit()
+
+    # Notify sender that messages were read
+    if marked_read_ids:
+        socketio.emit('messages_read', {'message_ids': marked_read_ids, 'friend_id': current_user_id}, room=f'user_{friend_id}')
 
     # Get friend info
     friend = db.session.query(User).get(friend_id)
@@ -147,6 +169,7 @@ def send_message_api():
         'sender': current_user.username,
         'sender_id': current_user_id,
         'chat_id': messenger.id,
+        'is_read': new_message.is_read,
         'created_at': new_message.created_at.strftime("%H:%M")
     }
 
