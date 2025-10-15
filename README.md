@@ -117,11 +117,11 @@ This is a full-featured web-based social media platform built with Flask that pr
 social-media-platform/
 ├── main.py                       # Application entry point with database initialization
 ├── requirements.txt              # Python dependencies (Flask, SocketIO, Pillow, etc.)
-├── app/                          # Main application package
+├── app/                          # Backend Flask application
 │   ├── __init__.py              # App factory, SocketIO, and database configuration
 │   ├── config.py                # Application configuration management
 │   ├── decorators.py            # Custom decorators (login_required, etc.)
-│   ├── error_handlers.py        # Custom error page handlers
+│   ├── error_handlers.py        # JSON error response handlers
 │   ├── models/                  # Database models
 │   │   └── __init__.py          # User, Friendship, Post, Message, Messenger, Notification
 │   ├── helpers/                 # Utility functions
@@ -129,84 +129,77 @@ social-media-platform/
 │   │   ├── chat.py              # Chat-related helper functions
 │   │   ├── friends.py           # Friendship management helpers
 │   │   └── notifications.py     # Notification system helpers
-│   ├── routes/                  # Route blueprints
+│   ├── routes/                  # REST API route blueprints
 │   │   ├── __init__.py          # Blueprint registration
-│   │   ├── auth.py              # Authentication (login/register/logout)
-│   │   ├── index.py             # Home page, posts feed, image upload
-│   │   ├── chat.py              # Real-time messaging and chat interface
-│   │   ├── friends.py           # Friend management and search
-│   │   └── notifications.py     # Notification delivery and cleanup
-│   ├── socket/                  # WebSocket event handlers
+│   │   ├── auth.py              # Authentication API (login/register/logout)
+│   │   ├── index.py             # Posts API (feed, upload, comments)
+│   │   ├── chat.py              # Chat API (messages, conversations)
+│   │   ├── friends.py           # Friends API (search, requests, management)
+│   │   └── notifications.py     # Notifications API (delivery, cleanup)
+│   ├── services/                # Business logic services
+│   │   ├── __init__.py          # Service initialization
+│   │   ├── user_service.py      # User management logic
+│   │   ├── post_service.py      # Post and comment logic
+│   │   ├── friendship_service.py # Friendship logic
+│   │   └── notification_service.py # Notification logic
+│   ├── sockets/                 # WebSocket event handlers
 │   │   └── __init__.py          # Socket.IO events for real-time features
-│   ├── templates/               # Jinja2 HTML templates
-│   │   ├── index.html           # Base layout with navigation
-│   │   ├── login.html           # Authentication page
-│   │   ├── posts.html           # Posts feed and profile pages
-│   │   ├── chat.html            # Chat interface and messaging
-│   │   ├── friends.html         # Friends management interface
-│   │   ├── sidebar.html         # Sidebar component template
-│   │   ├── upload_image.html    # Image upload component
-│   │   ├── notification_window.html # Notification window component
-│   │   ├── toast_notification.html # Toast notification component
-│   │   ├── partials/            # Reusable template components
-│   │   └── errors/              # Custom error pages (404, 401, etc.)
-│   └── static/                  # Static assets
-│       ├── style.css            # Global styles and layout
-│       ├── global.css           # Additional global styling
-│       ├── sidebar.css          # Sidebar component styles
-│       ├── login.css            # Authentication page styles
-│       ├── posts.css            # Posts feed styling
-│       ├── post.css             # Individual post component styles
-│       ├── chat.css             # Chat interface styling
-│       ├── friends.css          # Friends management styling
-│       ├── errors.css           # Error page styling
-│       ├── upload_image.css     # Image upload component styles
-│       ├── index.js             # Core JavaScript with Socket.IO setup
-│       ├── login.js             # Authentication page interactions
-│       ├── posts.js             # Posts feed and image upload functionality
-│       ├── upload_image.js      # Image upload functionality
-│       ├── chat.js              # Real-time chat functionality
-│       ├── friends.js           # Friends management interactions
-│       ├── toast_notification.js # Toast notification system
+│   └── static/                  # Static file storage
 │       └── uploads/             # User-uploaded image storage
+├── frontend/                     # SvelteKit frontend application
+│   ├── src/
+│   │   ├── routes/              # SvelteKit routes and pages
+│   │   ├── lib/
+│   │   │   └── components/      # Svelte UI components
+│   │   ├── app.html             # HTML shell
+│   │   └── app.css              # Global styles
+│   ├── static/                  # Static assets
+│   ├── package.json             # Node dependencies
+│   ├── svelte.config.js         # SvelteKit configuration
+│   ├── tailwind.config.js       # Tailwind CSS configuration
+│   └── vite.config.ts           # Vite build configuration
 └── instance/                    # Database and instance-specific files
 ```
 
-## Application Routes & API Endpoints
+## API Endpoints
 
-### Authentication Routes (`bp_auth`)
-- **`GET/POST /login`** - Login page and authentication handling
-- **`POST /register`** - New user registration
-- **`GET /logout`** - User logout and session cleanup
+All endpoints return JSON responses. The Flask backend serves as a REST API for the Svelte frontend.
 
-### Main Application Routes (`bp_index`)
-- **`GET /`** - Home page with posts feed (redirects to login if not authenticated)
-- **`GET /profile/<username>`** - User profile pages displaying individual user posts
-- **`POST /upload_image`** - Image upload endpoint with validation and storage
-- **`POST /delete_post`** - Delete user's own posts with file cleanup
+### Authentication API (`bp_auth`)
+- **`POST /api/signin`** - Authenticate user and create session
+- **`POST /api/signup`** - Register new user account
+- **`GET /api/current_user`** - Get currently authenticated user info
+- **`GET /logout`** - Clear session and logout user
 
-### Chat System Routes (`bp_chat`)
-- **`GET /chat`** - Main chat interface page
-- **`GET /chat/friends_list`** - Get friends list for chat (returns HTML partial)
-- **`GET /chat/open/<username>`** - Open chat conversation with specific friend
-- **`POST /chat/send_message`** - Send real-time message to friend
+### Posts & Comments API (`bp_index`)
+- **`GET /`** - Health check endpoint (requires authentication)
+- **`GET /api/profile/<username>`** - Get user profile and their posts (JSON)
+- **`POST /upload_image`** - Upload image post with validation
+- **`POST /delete_post`** - Delete user's own post with file cleanup
+- **`POST /api/like_post/<post_id>`** - Like/unlike a post, returns updated count
+- **`POST /api/comment/<post_id>`** - Create comment or reply on a post
+- **`GET /api/comments/<post_id>`** - Get all comments for a post
+- **`DELETE /api/comment/<comment_id>`** - Delete user's own comment
+- **`GET /api/comment_count/<post_id>`** - Get comment count for a post
 
-### Friends Management Routes (`bp_friends`)
-- **`GET /friends`** - Friends management interface page
-- **`GET /search_users`** - Live user search with friendship status indicators
-- **`POST /send_friend_request`** - Send friend request to another user
-- **`POST /respond_friend_request`** - Accept or reject incoming friend requests
-- **`POST /cancel_friend_request`** - Cancel previously sent friend requests
-- **`POST /remove_friend`** - Remove existing friendship
+### Chat & Messaging API (`bp_chat`)
+- **`GET /api/friend_list`** - Get friends list with last message info for messenger
+- **`GET /api/messages/<friend_id>`** - Get all messages with a friend (marks as read)
+- **`POST /api/send_message`** - Send message to friend (JSON body: friend_id, content)
 
-### Friends API Endpoints (`bp_friends`)
-- **`GET /api/friends`** - Get current user's friends list (JSON)
-- **`GET /api/friend_requests`** - Get incoming friend requests (JSON)
-- **`GET /api/sent_requests`** - Get sent friend requests (JSON)
+### Friends Management API (`bp_friends`)
+- **`GET /search_users?q=<query>`** - Search users with friendship status
+- **`POST /send_friend_request`** - Send friend request (JSON body: user_id)
+- **`POST /respond_friend_request`** - Accept/reject request (JSON body: friendship_id, response)
+- **`POST /cancel_friend_request`** - Cancel sent request (JSON body: friendship_id)
+- **`POST /remove_friend`** - Remove existing friendship (JSON body: friend_user_id)
+- **`GET /api/friends`** - Get current user's accepted friends list
+- **`GET /api/friend_requests`** - Get incoming friend requests
+- **`GET /api/sent_requests`** - Get sent pending friend requests
 
-### Notifications System (`bp_notifications`)
-- **`GET /notifications`** - Retrieve user notifications (JSON)
-- **`POST /cleanup_notifications`** - Clean up expired/invalid notifications
+### Notifications API (`bp_notifications`)
+- **`GET /notifications`** - Get user notifications with auto-cleanup
+- **`POST /cleanup_notifications`** - Manually clean up stale notifications
 
 ### WebSocket Events (Real-time)
 - **`connect`** - User connection with online status update

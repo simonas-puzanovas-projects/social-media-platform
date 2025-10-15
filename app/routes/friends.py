@@ -1,5 +1,5 @@
 
-from flask import Blueprint, render_template, request, session, jsonify
+from flask import Blueprint, request, session, jsonify
 from ..helpers import create_notification, clean_notification_data
 from ..models import User, Notification, Messenger
 from ..decorators import login_required
@@ -7,17 +7,6 @@ from .. import db
 from ..services import user_service, friendship_service, notification_service
 
 bp_friends = Blueprint("bp_friends", __name__)
-
-@bp_friends.route('/friends')
-@login_required
-def friends():
-    current_user_id = session['user_id']
-    
-    friends = user_service.get_user_friends(current_user_id)
-
-    received_requests = friendship_service.get_received_friend_requests(current_user_id).all()
-    
-    return render_template('friends.html', friends=friends, received_requests=received_requests)
 
 @bp_friends.route('/search_users')
 @login_required

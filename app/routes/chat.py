@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, request, jsonify
+from flask import Blueprint, session, request, jsonify
 from ..models import Messenger, Message, User
 from ..decorators import login_required
 from .. import db, socketio

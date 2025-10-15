@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, session, jsonify, make_response
+from flask import Blueprint, redirect, url_for, request, session, jsonify, make_response
 from ..services.user_service import UserServiceError
 from ..services import user_service
 import json

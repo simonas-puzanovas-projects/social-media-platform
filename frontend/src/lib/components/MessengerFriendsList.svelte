@@ -141,7 +141,7 @@
 	});
 </script>
 
-<div class="w-80 bg-white h-screen flex flex-col border-r border-gray-200">
+<div class="w-full md:w-80 bg-white h-screen flex flex-col border-r border-gray-200">
 	<!-- Header -->
 	<div class="px-5 py-4 border-b border-gray-200">
 		<div class="flex items-center justify-between mb-3.5">

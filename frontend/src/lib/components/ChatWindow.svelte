@@ -3,6 +3,7 @@
 	import { io } from 'socket.io-client';
 
 	export let selectedFriendId: number | null = null;
+	export let onBack: (() => void) | undefined = undefined;
 
 	interface Message {
 		id: number;
@@ -180,8 +181,20 @@
 {#if selectedFriendId && friend}
 	<div class="flex flex-col h-screen bg-white">
 		<!-- Chat Header -->
-		<div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white">
+		<div class="px-4 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white">
 			<div class="flex items-center gap-3">
+				<!-- Back button for mobile -->
+				{#if onBack}
+					<button
+						on:click={onBack}
+						class="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
+						aria-label="Back to conversations"
+					>
+						<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+						</svg>
+					</button>
+				{/if}
 				<div class="relative">
 					<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-sm">
 						{friend.username.split(' ').map(n => n[0]).join('')}
@@ -212,7 +225,7 @@
 		<!-- Messages Container -->
 		<div
 			bind:this={messagesContainer}
-			class="flex-1 overflow-y-auto px-6 py-4 bg-gray-50"
+			class="flex-1 overflow-y-auto px-4 md:px-6 py-4 bg-gray-50"
 		>
 			{#if loading}
 				<div class="flex items-center justify-center h-full">
@@ -230,7 +243,7 @@
 				<div class="space-y-4">
 					{#each messages as message (message.id)}
 						<div class="flex {message.sender_id === currentUserId ? 'justify-start' : 'justify-end'}">
-							<div class="flex gap-2 max-w-[70%] {message.sender_id === currentUserId ? 'flex-row' : 'flex-row-reverse'}">
+							<div class="flex gap-2 max-w-[85%] md:max-w-[70%] {message.sender_id === currentUserId ? 'flex-row' : 'flex-row-reverse'}">
 								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
 									{message.sender[0].toUpperCase()}
 								</div>
@@ -255,8 +268,8 @@
 		</div>
 
 		<!-- Message Input -->
-		<div class="px-6 py-4 bg-white border-t border-gray-200">
-			<div class="flex items-end gap-3">
+		<div class="px-4 md:px-6 py-4 bg-white border-t border-gray-200">
+			<div class="flex items-end gap-2 md:gap-3">
 				<button aria-label="Add attachment" class="p-2 text-gray-500 hover:text-gray-700 transition-colors">
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
