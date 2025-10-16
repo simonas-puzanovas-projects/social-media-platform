@@ -27,7 +27,7 @@
     }
 </script>
 
-<div class="flex h-screen overflow-hidden w-full">
+<div class="flex h-screen overflow-hidden w-full md:ml-20">
     <!-- Friends list - hide when chat is selected on mobile -->
     <div class="{selectedFriendId ? 'hidden md:block' : 'block'} w-full md:w-auto">
         <MessengerFriendsList

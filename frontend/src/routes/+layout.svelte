@@ -4,6 +4,8 @@
     import { page } from '$app/state';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import FriendsWindow from '$lib/components/FriendsWindow.svelte';
+	import CreatePostWindow from '$lib/components/CreatePostWindow.svelte';
+	import NotificationsWindow from '$lib/components/NotificationsWindow.svelte';
 	let { children } = $props();
 </script>
 
@@ -32,3 +34,5 @@
 {/if}
 
 <FriendsWindow/>
+<CreatePostWindow/>
+<NotificationsWindow/>

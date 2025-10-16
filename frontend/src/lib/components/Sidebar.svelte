@@ -1,5 +1,5 @@
 <!-- Desktop Sidebar -->
-<div class="hidden md:flex h-screen w-20 bg-[#1a1a1a] flex-col items-center py-6 border-r border-gray-800">
+<div class="hidden md:flex fixed left-0 top-0 h-screen w-20 bg-[#1a1a1a] flex-col items-center py-6 border-r border-gray-800 z-40">
 	<!-- Logo -->
 	<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-8">
 		<span class="text-black font-bold text-lg">-S.H-</span>
@@ -7,11 +7,17 @@
 
 	<!-- Navigation Icons -->
 	<nav class="flex flex-col gap-5">
-		<a href="/" class={nav_icon_tailwind} title="Dashboard">
+		<a href="/" class={nav_icon_tailwind} title="Home">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
 			</svg>
 		</a>
+
+		<button on:click={() => postCreationWindowOpen.set(true)} class={nav_icon_tailwind} title="Create Post">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+			</svg>
+		</button>
 
 		<a href="/messenger" class={nav_icon_tailwind} title="Messenger">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,36 +31,35 @@
 			</svg>
 		</button>
 
-		<a href="/notifications" class={nav_icon_tailwind} title="Notifications">
+		<button on:click={() => notificationsWindowOpen.set(true)} class={nav_icon_tailwind} title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
 			</svg>
-		</a>
-
-		<a href="/settings" class={nav_icon_tailwind} title="Settings">
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-			</svg>
-		</a>
+		</button>
 	</nav>
 
 	<!-- Logout at bottom -->
-	<a href="/logout" class="{nav_icon_tailwind} mt-auto" title="Logout">
+	<button on:click={handleLogout} class="{nav_icon_tailwind} mt-auto" title="Logout">
 		<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
 		</svg>
-	</a>
+	</button>
 </div>
 
 <!-- Mobile Bottom Navigation -->
 <div class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-gray-800 z-50">
 	<nav class="flex justify-around items-center h-16 px-2">
-		<a href="/" class={mobile_nav_icon} title="Dashboard">
+		<a href="/" class={mobile_nav_icon} title="Home">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
 			</svg>
 		</a>
+
+		<button on:click={() => postCreationWindowOpen.set(true)} class={mobile_nav_icon} title="Create Post">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+			</svg>
+		</button>
 
 		<a href="/messenger" class={mobile_nav_icon} title="Messenger">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,25 +73,41 @@
 			</svg>
 		</button>
 
-		<a href="/notifications" class={mobile_nav_icon} title="Notifications">
+		<button on:click={() => notificationsWindowOpen.set(true)} class={mobile_nav_icon} title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
 			</svg>
-		</a>
-
-		<a href="/settings" class={mobile_nav_icon} title="Settings">
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-			</svg>
-		</a>
+		</button>
 	</nav>
 </div>
 
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { friendsWindowOpen } from '$lib/stores/friendsStore';
+	import { postCreationWindowOpen } from '$lib/stores/postCreationStore';
+	import { notificationsWindowOpen } from '$lib/stores/notificationsStore';
+	import { disconnectSocket } from '$lib/socket';
 
 	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"
 	let mobile_nav_icon = "flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 cursor-pointer min-h-[44px] min-w-[44px] p-2"
+
+	async function handleLogout() {
+		try {
+			// Call logout endpoint
+			await fetch('http://localhost:5000/logout', {
+				credentials: 'include'
+			});
+
+			// Disconnect socket
+			disconnectSocket();
+
+			// Redirect to signin
+			goto('/signin');
+		} catch (error) {
+			console.error('Logout failed:', error);
+			// Still redirect to signin even if logout fails
+			goto('/signin');
+		}
+	}
 </script>
 

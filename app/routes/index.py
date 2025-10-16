@@ -40,7 +40,7 @@ def profile(username):
     return jsonify({
         'success': True,
         'username': username,
-        'posts': [post.to_dict() for post in posts],
+        'posts': posts,
         'current_user_id': session.get('user_id')
     })
 

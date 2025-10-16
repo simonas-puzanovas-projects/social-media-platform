@@ -76,6 +76,20 @@ class PostComment(db.Model):
         """Get count of direct replies to this comment"""
         return len(self.replies) if self.replies else 0
 
+    def to_dict(self):
+        """Convert comment to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.user.username,
+            'post_id': self.post_id,
+            'parent_id': self.parent_id,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'reply_count': self.reply_count,
+            'replies': [reply.to_dict() for reply in self.replies] if self.replies else []
+        }
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -90,19 +104,31 @@ class Post(db.Model):
         likes = [
             {
                 "user_id": like.user_id,
-                "username": like.user.username     
+                "username": like.user.username
             }
             for like in self.likes
-        ] 
+        ]
+
+        # Count all comments including nested replies
+        def count_all_comments(comments):
+            total = 0
+            for comment in comments:
+                total += 1
+                if comment.replies:
+                    total += count_all_comments(comment.replies)
+            return total
+
+        comment_count = count_all_comments([c for c in self.comments if c.parent_id is None])
 
         return {
             'id': self.id,
             'owner_id': self.owner,
             'owner_name': self.owner_user.username,
             'image_path': self.image_path,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
-            "likes": likes
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+            "likes": likes,
+            "comment_count": comment_count
         }
 
 class Notification(db.Model):
