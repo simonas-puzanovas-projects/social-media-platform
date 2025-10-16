@@ -208,6 +208,10 @@
 		activeTab = tab;
 		error = '';
 		successMessage = '';
+		// Clear and disable search when not on Friends tab
+		if (tab !== 'friends') {
+			searchQuery = '';
+		}
 		if (tab === 'friends' && friends.length === 0) fetchFriends();
 		else if (tab === 'requests' && receivedRequests.length === 0) fetchReceivedRequests();
 		else if (tab === 'sent' && sentRequests.length === 0) fetchSentRequests();
@@ -240,7 +244,7 @@
 
 			<div class="px-6 py-4 border-b border-gray-200">
 				<div class="relative">
-					<input type="text" bind:value={searchQuery} placeholder="Search for users..." class="w-full px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-all pr-10"/>
+					<input type="text" bind:value={searchQuery} placeholder="Search for users..." disabled={activeTab !== 'friends'} class="w-full px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-all pr-10 disabled:opacity-50 disabled:cursor-not-allowed"/>
 					<svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
 					</svg>
@@ -303,9 +307,7 @@
 							</div>
 						{/if}
 					</div>
-				{/if}
-
-				{#if activeTab === 'friends'}
+				{:else if activeTab === 'friends'}
 					{#if loading}
 						<div class="text-center py-12 text-gray-500 text-sm">Loading...</div>
 					{:else if friends.length === 0}
@@ -346,9 +348,7 @@
 							{/each}
 						</div>
 					{/if}
-				{/if}
-
-				{#if activeTab === 'requests'}
+				{:else if activeTab === 'requests'}
 					{#if loading}
 						<div class="text-center py-12 text-gray-500 text-sm">Loading...</div>
 					{:else if receivedRequests.length === 0}
@@ -380,9 +380,7 @@
 							{/each}
 						</div>
 					{/if}
-				{/if}
-
-				{#if activeTab === 'sent'}
+				{:else if activeTab === 'sent'}
 					{#if loading}
 						<div class="text-center py-12 text-gray-500 text-sm">Loading...</div>
 					{:else if sentRequests.length === 0}

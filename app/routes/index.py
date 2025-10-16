@@ -14,6 +14,19 @@ bp_index = Blueprint("bp_index", __name__)
 def index():
     return jsonify({"success": True})
 
+@bp_index.route('/api/posts')
+@login_required
+def get_posts():
+    try:
+        posts = post_service.query_posts()
+        return jsonify({
+            'success': True,
+            'posts': posts,
+            'current_user_id': session.get('user_id')
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @bp_index.route('/api/profile/<username>')
 @login_required
 def profile(username):

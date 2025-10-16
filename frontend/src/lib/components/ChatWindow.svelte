@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { io } from 'socket.io-client';
+	import { getSocket } from '$lib/socket';
+	import type { Socket } from 'socket.io-client';
 
 	export let selectedFriendId: number | null = null;
 	export let onBack: (() => void) | undefined = undefined;
@@ -27,7 +28,7 @@
 	let loading = false;
 	let error = "";
 	let messagesContainer: HTMLDivElement;
-	let socket: any = null;
+	let socket: Socket;
 	let currentUserId: number | null = null;
 
 	$: if (selectedFriendId) {
@@ -125,16 +126,10 @@
 	onMount(() => {
 		getCurrentUserId();
 
-		// Initialize Socket.IO connection
-		socket = io('http://localhost:5000', {
-			withCredentials: true
-		});
+		// Get shared Socket.IO connection
+		socket = getSocket();
 
-		socket.on('connect', () => {
-			console.log('Connected to socket');
-		});
-
-		socket.on('new_message', (data: any) => {
+		const handleNewMessage = (data: any) => {
 			console.log('New message received:', data);
 			if (data.chat_id === messengerId) {
 				// Add the message to the list
@@ -156,9 +151,9 @@
 					}
 				}
 			}
-		});
+		};
 
-		socket.on('messages_read', (data: any) => {
+		const handleMessagesRead = (data: any) => {
 			console.log('Messages read event received:', data);
 			// Update is_read status for messages that were read
 			const messageIds = data.message_ids || [];
@@ -168,13 +163,21 @@
 				}
 				return msg;
 			});
-		});
+		};
+
+		socket.on('new_message', handleNewMessage);
+		socket.on('messages_read', handleMessagesRead);
+
+		// Cleanup function to remove event listeners
+		return () => {
+			socket.off('new_message', handleNewMessage);
+			socket.off('messages_read', handleMessagesRead);
+		};
 	});
 
 	onDestroy(() => {
-		if (socket) {
-			socket.disconnect();
-		}
+		// Don't disconnect the shared socket, just clean up listeners
+		// The socket will be managed by the socket.ts module
 	});
 </script>
 

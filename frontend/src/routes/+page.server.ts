@@ -9,6 +9,13 @@ export const load: PageServerLoad = async ({fetch}) => {
     if (response.status === 401) {
         redirect(303, '/signin');
     }
-  
-    return { data };
+
+    const postsResponse = await fetch('http://localhost:5000/api/posts');
+    const postsData = await postsResponse.json();
+
+    return {
+        data,
+        posts: postsData.posts || [],
+        currentUserId: postsData.current_user_id
+    };
 };

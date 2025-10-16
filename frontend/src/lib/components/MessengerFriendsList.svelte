@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-	import { io } from 'socket.io-client';
+	import { getSocket } from '$lib/socket';
+	import type { Socket } from 'socket.io-client';
 
 	const dispatch = createEventDispatcher();
 
@@ -24,7 +25,7 @@
 	let searchQuery = "";
 	let loading = true;
 	let error = "";
-	let socket: any;
+	let socket: Socket;
 
 	$: pinnedContacts = contacts.filter(c => c.isPinned);
 	$: allContacts = contacts.filter(c => !c.isPinned);
@@ -116,28 +117,33 @@
 	onMount(() => {
 		fetchFriendsList();
 
-		// Connect to Socket.IO
-		socket = io('http://localhost:5000', {
-			withCredentials: true
-		});
+		// Get shared Socket.IO connection
+		socket = getSocket();
 
-		// Listen for new messages
-		socket.on('new_message', handleNewMessage);
-
-		// Listen for messages marked as read
-		socket.on('messages_read', (data: any) => {
+		const handleMessagesReadInList = (data: any) => {
 			const contact = contacts.find(c => c.id === data.friend_id);
 			if (contact) {
 				contact.unreadCount = 0;
 				contacts = contacts;
 			}
-		});
+		};
+
+		// Listen for new messages
+		socket.on('new_message', handleNewMessage);
+
+		// Listen for messages marked as read
+		socket.on('messages_read', handleMessagesReadInList);
+
+		// Cleanup function to remove event listeners
+		return () => {
+			socket.off('new_message', handleNewMessage);
+			socket.off('messages_read', handleMessagesReadInList);
+		};
 	});
 
 	onDestroy(() => {
-		if (socket) {
-			socket.disconnect();
-		}
+		// Don't disconnect the shared socket, just clean up listeners
+		// The socket will be managed by the socket.ts module
 	});
 </script>
 
