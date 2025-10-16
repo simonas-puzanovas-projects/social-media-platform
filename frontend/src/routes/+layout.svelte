@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
     import { page } from '$app/state';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import FriendsWindow from '$lib/components/FriendsWindow.svelte';
 	let { children } = $props();
 </script>
 
@@ -29,3 +30,5 @@
 		{@render children()}
 	</main>
 {/if}
+
+<FriendsWindow/>

@@ -19,11 +19,11 @@
 			</svg>
 		</a>
 
-		<a href="/friends" class={nav_icon_tailwind} title="Friends">
+		<button on:click={() => friendsWindowOpen.set(true)} class={nav_icon_tailwind} title="Friends">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
 			</svg>
-		</a>
+		</button>
 
 		<a href="/notifications" class={nav_icon_tailwind} title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,11 +62,11 @@
 			</svg>
 		</a>
 
-		<a href="/friends" class={mobile_nav_icon} title="Friends">
+		<button on:click={() => friendsWindowOpen.set(true)} class={mobile_nav_icon} title="Friends">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
 			</svg>
-		</a>
+		</button>
 
 		<a href="/notifications" class={mobile_nav_icon} title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,9 +84,9 @@
 </div>
 
 <script lang="ts">
+	import { friendsWindowOpen } from '$lib/stores/friendsStore';
 
 	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"
 	let mobile_nav_icon = "flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 cursor-pointer min-h-[44px] min-w-[44px] p-2"
-
 </script>
 
