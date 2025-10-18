@@ -1,4 +1,5 @@
 <script>
+    import { fade } from 'svelte/transition';
     import MessengerFriendsList from "$lib/components/MessengerFriendsList.svelte";
     import ChatWindow from "$lib/components/ChatWindow.svelte";
 
@@ -27,7 +28,7 @@
     }
 </script>
 
-<div class="flex h-screen overflow-hidden w-full md:ml-20">
+<div class="flex h-screen overflow-hidden w-full md:ml-20" in:fade="{{ duration: 300 }}">
     <!-- Friends list - hide when chat is selected on mobile -->
     <div class="{selectedFriendId ? 'hidden md:block' : 'block'} w-full md:w-auto">
         <MessengerFriendsList

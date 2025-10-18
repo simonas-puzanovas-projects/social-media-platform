@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { fade, fly, scale } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import { getSocket } from '$lib/socket';
 	import type { Socket } from 'socket.io-client';
 
@@ -171,7 +173,10 @@
 
 	function scrollToBottom() {
 		if (messagesContainer) {
-			messagesContainer.scrollTop = messagesContainer.scrollHeight;
+			messagesContainer.scrollTo({
+				top: messagesContainer.scrollHeight,
+				behavior: 'smooth'
+			});
 		}
 	}
 
@@ -256,9 +261,9 @@
 </script>
 
 {#if selectedFriendId && friend}
-	<div class="flex flex-col h-screen bg-white">
+	<div class="flex flex-col h-screen bg-white" in:fade="{{ duration: 400 }}">
 		<!-- Chat Header -->
-		<div class="px-4 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white">
+		<div class="px-4 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white" in:fly="{{ x: 20, duration: 400, delay: 100 }}">
 			<div class="flex items-center gap-3">
 				<!-- Back button for mobile -->
 				{#if onBack}
@@ -286,12 +291,12 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-2">
-				<button aria-label="Voice chat" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+				<button aria-label="Voice chat" class="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110">
 					<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
 					</svg>
 				</button>
-				<button aria-label="Video chat" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+				<button aria-label="Video chat" class="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110">
 					<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
 					</svg>
@@ -319,18 +324,21 @@
 			{:else}
 				<div class="space-y-4">
 					{#each messages as message (message.id)}
-						<div class="flex {message.sender_id === currentUserId ? 'justify-start' : 'justify-end'}">
+						<div
+							class="flex {message.sender_id === currentUserId ? 'justify-start' : 'justify-end'}"
+							in:fly="{{ y: 20, duration: 300, easing: quintOut }}"
+						>
 							<div class="flex gap-2 max-w-[85%] md:max-w-[70%] {message.sender_id === currentUserId ? 'flex-row' : 'flex-row-reverse'}">
-								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
+								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0 transition-transform duration-200 hover:scale-110">
 									{message.sender[0].toUpperCase()}
 								</div>
 								<div class="flex flex-col {message.sender_id === currentUserId ? 'items-start' : 'items-end'}">
-									<div class="rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'} {message.image_url ? 'p-2' : 'px-4 py-2'}">
+									<div class="rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'} {message.image_url ? 'p-2' : 'px-4 py-2'} transition-all duration-200 hover:shadow-md">
 										{#if message.image_url}
 											<img
 												src={`http://localhost:5000/static/${message.image_url}`}
 												alt="Shared image"
-												class="max-w-xs max-h-64 rounded-lg cursor-pointer"
+												class="max-w-xs max-h-64 rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105"
 												on:click={() => window.open(`http://localhost:5000/static/${message.image_url}`, '_blank')}
 											/>
 											{#if message.content}
@@ -360,11 +368,11 @@
 		<div class="px-4 md:px-6 py-4 bg-white border-t border-gray-200">
 			<!-- Image Preview -->
 			{#if imagePreview}
-				<div class="mb-3 relative inline-block">
-					<img src={imagePreview} alt="Preview" class="max-h-32 rounded-lg border border-gray-200" />
+				<div class="mb-3 relative inline-block" in:scale="{{ duration: 200, easing: quintOut }}">
+					<img src={imagePreview} alt="Preview" class="max-h-32 rounded-lg border border-gray-200 shadow-md" />
 					<button
 						on:click={clearImagePreview}
-						class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+						class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 hover:scale-110 transition-all duration-200"
 						aria-label="Remove image"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +396,7 @@
 				<button
 					on:click={openImagePicker}
 					aria-label="Add image"
-					class="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+					class="p-2 text-gray-500 hover:text-blue-500 hover:scale-110 transition-all duration-200"
 					disabled={uploading}
 				>
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,7 +418,7 @@
 					aria-label="Send message"
 					on:click={sendMessage}
 					disabled={(!newMessage.trim() && !selectedImage) || uploading}
-					class="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					class="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
 				>
 					{#if uploading}
 						<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
