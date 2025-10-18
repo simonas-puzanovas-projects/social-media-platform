@@ -41,9 +41,13 @@
 	let commentError = $state('');
 	let expandedReplies = $state<Set<number>>(new Set());
 	let socket: Socket;
+	let commentsLoaded = $state(false);
 
 	async function handleLike() {
 		try {
+			// Store the current state before making the request
+			const wasLikedBefore = isLiked;
+
 			const response = await fetch(`http://localhost:5000/api/like_post/${post.id}`, {
 				method: 'POST',
 				credentials: 'include'
@@ -51,8 +55,10 @@
 
 			if (response.ok) {
 				const newCount = await response.text();
-				likeCount = parseInt(newCount);
-				isLiked = !isLiked;
+				const newCountInt = parseInt(newCount);
+				// Toggle the like state - if we were liked before, now we're unliked and vice versa
+				isLiked = !wasLikedBefore;
+				likeCount = newCountInt;
 			}
 		} catch (error) {
 			console.error('Failed to like post:', error);
@@ -63,6 +69,9 @@
 		showComments = !showComments;
 		if (showComments && comments.length === 0) {
 			await loadComments();
+		} else if (!showComments) {
+			// Reset animation state when closing
+			commentsLoaded = false;
 		}
 	}
 
@@ -85,6 +94,10 @@
 					}, 0);
 				};
 				commentCount = countAllComments(data.comments);
+				// Trigger animation
+				setTimeout(() => {
+					commentsLoaded = true;
+				}, 50);
 			}
 		} catch (error) {
 			console.error('Failed to load comments:', error);
@@ -439,7 +452,9 @@
 		<div class="flex items-center gap-4">
 			<button
 				onclick={handleLike}
-				class="flex items-center gap-2 text-gray-700 hover:text-red-500 transition-colors"
+				class="flex items-center gap-2 transition-colors"
+				class:text-red-500={isLiked}
+				class:text-gray-700={!isLiked}
 			>
 				<svg
 					class="w-6 h-6"
@@ -509,8 +524,8 @@
 				<div class="text-center py-4 text-gray-500 text-sm">No comments yet. Be the first!</div>
 			{:else}
 				<div class="space-y-4">
-					{#each comments as comment (comment.id)}
-						<div class="bg-white rounded-lg p-3" transition:fly="{{ y: -20, duration: 300 }}">
+					{#each comments as comment, index (comment.id)}
+						<div class="bg-white rounded-lg p-3 comment-fade-in" style="animation-delay: {commentsLoaded ? 0 : index * 50}ms;">
 							<!-- Comment -->
 							<div class="flex gap-2">
 								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
@@ -577,8 +592,8 @@
 									<!-- Nested Replies -->
 									{#if comment.replies.length > 0 && expandedReplies.has(comment.id)}
 										<div class="mt-3 space-y-3 pl-4 border-l-2 border-gray-200">
-											{#each comment.replies as reply (reply.id)}
-												<div class="flex gap-2" transition:fly="{{ y: -10, duration: 250 }}">
+											{#each comment.replies as reply, replyIndex (reply.id)}
+												<div class="flex gap-2 reply-fade-in" style="animation-delay: {replyIndex * 40}ms;">
 													<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
 														{reply.username[0].toUpperCase()}
 													</div>
@@ -610,3 +625,37 @@
 		</div>
 	{/if}
 </article>
+
+<style>
+	@keyframes comment-fade {
+		from {
+			opacity: 0;
+			transform: translateY(15px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes reply-fade {
+		from {
+			opacity: 0;
+			transform: translateX(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	.comment-fade-in {
+		animation: comment-fade 0.4s ease-out forwards;
+		opacity: 0;
+	}
+
+	.reply-fade-in {
+		animation: reply-fade 0.3s ease-out forwards;
+		opacity: 0;
+	}
+</style>

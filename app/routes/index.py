@@ -77,15 +77,15 @@ def upload_image():
         }
         socketio.emit("new_post", owner_socket_post_data, room=f'user_{user.id}')
 
-        # Send to friends without delete button
-       # for friend in friends_query:
-       #     friend_socket_post_data = {
-       #         "post_data": new_post.to_dict(),
-       #         "owner": user.username,
-       #         "post_id": new_post.id,
-       #         "current_user_id": friend["id"]
-       #     }
-       #     socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
+        # Send to friends
+        for friend in friends_query:
+            friend_socket_post_data = {
+                "post_data": new_post.to_dict(),
+                "owner": user.username,
+                "post_id": new_post.id,
+                "current_user_id": friend["id"]
+            }
+            socketio.emit("new_post", friend_socket_post_data, room=f'user_{friend["id"]}')
 
         return jsonify({
             'success': True,

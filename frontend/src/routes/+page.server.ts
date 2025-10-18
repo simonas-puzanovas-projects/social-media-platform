@@ -13,10 +13,15 @@ export const load: PageServerLoad = async ({fetch}) => {
     const postsResponse = await fetch('http://localhost:5000/api/posts');
     const postsData = await postsResponse.json();
 
+    // Fetch friends list
+    const friendsResponse = await fetch('http://localhost:5000/api/friends');
+    const friendsData = await friendsResponse.json();
+
     return {
         data,
         posts: postsData.posts || [],
         currentUserId: postsData.current_user_id,
-        currentUsername: postsData.current_username
+        currentUsername: postsData.current_username,
+        friends: friendsData || []
     };
 };
