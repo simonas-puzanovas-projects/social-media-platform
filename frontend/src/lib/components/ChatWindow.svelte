@@ -11,6 +11,7 @@
 		sender_id: number;
 		sender: string;
 		content: string;
+		image_url?: string;
 		is_read: boolean;
 		created_at: string;
 	}
@@ -30,6 +31,10 @@
 	let messagesContainer: HTMLDivElement;
 	let socket: Socket;
 	let currentUserId: number | null = null;
+	let selectedImage: File | null = null;
+	let imagePreview: string | null = null;
+	let uploading = false;
+	let fileInput: HTMLInputElement;
 
 	$: if (selectedFriendId) {
 		loadMessages(selectedFriendId);
@@ -68,9 +73,32 @@
 	}
 
 	async function sendMessage() {
-		if (!newMessage.trim() || !selectedFriendId) return;
+		if ((!newMessage.trim() && !selectedImage) || !selectedFriendId) return;
 
 		try {
+			uploading = true;
+			let imageUrl = null;
+
+			// Upload image first if one is selected
+			if (selectedImage) {
+				const formData = new FormData();
+				formData.append('image', selectedImage);
+
+				const uploadResponse = await fetch('http://localhost:5000/api/upload_chat_image', {
+					method: 'POST',
+					credentials: 'include',
+					body: formData
+				});
+
+				if (!uploadResponse.ok) {
+					throw new Error('Failed to upload image');
+				}
+
+				const uploadData = await uploadResponse.json();
+				imageUrl = uploadData.image_url;
+			}
+
+			// Send message with optional image URL
 			const response = await fetch('http://localhost:5000/api/send_message', {
 				method: 'POST',
 				headers: {
@@ -79,7 +107,8 @@
 				credentials: 'include',
 				body: JSON.stringify({
 					friend_id: selectedFriendId,
-					content: newMessage.trim()
+					content: newMessage.trim() || null,
+					image_url: imageUrl
 				})
 			});
 
@@ -90,10 +119,54 @@
 			const data = await response.json();
 			// Message will be added via socket event
 			newMessage = "";
+			clearImagePreview();
 		} catch (err) {
 			console.error('Error sending message:', err);
 			error = err instanceof Error ? err.message : 'Failed to send message';
+		} finally {
+			uploading = false;
 		}
+	}
+
+	function handleImageSelect(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+
+		if (file) {
+			// Validate file type
+			const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+			if (!allowedTypes.includes(file.type)) {
+				error = 'Invalid file type. Only images allowed.';
+				return;
+			}
+
+			// Validate file size (10MB max)
+			if (file.size > 10 * 1024 * 1024) {
+				error = 'File too large. Maximum size is 10MB.';
+				return;
+			}
+
+			selectedImage = file;
+
+			// Create preview
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				imagePreview = e.target?.result as string;
+			};
+			reader.readAsDataURL(file);
+		}
+	}
+
+	function clearImagePreview() {
+		selectedImage = null;
+		imagePreview = null;
+		if (fileInput) {
+			fileInput.value = '';
+		}
+	}
+
+	function openImagePicker() {
+		fileInput?.click();
 	}
 
 	function scrollToBottom() {
@@ -140,6 +213,7 @@
 						sender_id: data.sender_id,
 						sender: data.sender,
 						content: data.content,
+						image_url: data.image_url,
 						is_read: data.is_read,
 						created_at: data.created_at
 					}];
@@ -251,8 +325,20 @@
 									{message.sender[0].toUpperCase()}
 								</div>
 								<div class="flex flex-col {message.sender_id === currentUserId ? 'items-start' : 'items-end'}">
-									<div class="px-4 py-2 rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'}">
-										<p class="text-sm break-words">{message.content}</p>
+									<div class="rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'} {message.image_url ? 'p-2' : 'px-4 py-2'}">
+										{#if message.image_url}
+											<img
+												src={`http://localhost:5000/static/${message.image_url}`}
+												alt="Shared image"
+												class="max-w-xs max-h-64 rounded-lg cursor-pointer"
+												on:click={() => window.open(`http://localhost:5000/static/${message.image_url}`, '_blank')}
+											/>
+											{#if message.content}
+												<p class="text-sm break-words mt-2 px-2">{message.content}</p>
+											{/if}
+										{:else}
+											<p class="text-sm break-words">{message.content}</p>
+										{/if}
 									</div>
 									<div class="flex items-center gap-1 mt-1 px-1">
 										<span class="text-xs text-gray-400">{message.created_at}</span>
@@ -272,30 +358,70 @@
 
 		<!-- Message Input -->
 		<div class="px-4 md:px-6 py-4 bg-white border-t border-gray-200">
+			<!-- Image Preview -->
+			{#if imagePreview}
+				<div class="mb-3 relative inline-block">
+					<img src={imagePreview} alt="Preview" class="max-h-32 rounded-lg border border-gray-200" />
+					<button
+						on:click={clearImagePreview}
+						class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+						aria-label="Remove image"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+						</svg>
+					</button>
+				</div>
+			{/if}
+
 			<div class="flex items-end gap-2 md:gap-3">
-				<button aria-label="Add attachment" class="p-2 text-gray-500 hover:text-gray-700 transition-colors">
+				<!-- Hidden file input -->
+				<input
+					type="file"
+					bind:this={fileInput}
+					on:change={handleImageSelect}
+					accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+					class="hidden"
+				/>
+
+				<!-- Image upload button -->
+				<button
+					on:click={openImagePicker}
+					aria-label="Add image"
+					class="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+					disabled={uploading}
+				>
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
 					</svg>
 				</button>
+
 				<div class="flex-1 relative">
 					<input
 						type="text"
 						bind:value={newMessage}
 						on:keydown={handleKeydown}
 						placeholder="Type a message..."
-						class="w-full px-4 py-3 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+						disabled={uploading}
+						class="w-full px-4 py-3 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all disabled:opacity-50"
 					/>
 				</div>
 				<button
 					aria-label="Send message"
 					on:click={sendMessage}
-					disabled={!newMessage.trim()}
+					disabled={(!newMessage.trim() && !selectedImage) || uploading}
 					class="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-					</svg>
+					{#if uploading}
+						<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+					{:else}
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+						</svg>
+					{/if}
 				</button>
 			</div>
 		</div>

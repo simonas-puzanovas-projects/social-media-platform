@@ -2,7 +2,9 @@ from flask import Blueprint, session, request, jsonify
 from ..models import Messenger, Message, User
 from ..decorators import login_required
 from .. import db, socketio
-from ..services import user_service
+from ..services import user_service, post_service
+import os
+import uuid
 
 bp_chat = Blueprint("bp_chat", __name__)
 
@@ -35,7 +37,12 @@ def get_friend_list():
             ).order_by(Message.created_at.desc()).first()
 
             if latest_msg:
-                last_message = latest_msg.content
+                if latest_msg.image_url and not latest_msg.content:
+                    last_message = "📷 Image"
+                elif latest_msg.image_url and latest_msg.content:
+                    last_message = f"📷 {latest_msg.content}"
+                else:
+                    last_message = latest_msg.content
                 last_message_time = latest_msg.created_at.strftime("%H:%M")
 
             # Count unread messages from this friend
@@ -93,6 +100,7 @@ def get_messages(friend_id):
             "sender_id": message.sender_id,
             "sender": sender_username,
             "content": message.content,
+            "image_url": message.image_url,
             "is_read": message.is_read,
             "created_at": message.created_at.strftime("%H:%M")
         })
@@ -131,7 +139,7 @@ def send_message_api():
     friend_id = data.get('friend_id')
     content = data.get('content')
 
-    if not friend_id or not content:
+    if not friend_id or (not content and not data.get('image_url')):
         return jsonify({'success': False, 'message': 'Missing required fields'}), 400
 
     friend = db.session.query(User).get(friend_id)
@@ -156,7 +164,8 @@ def send_message_api():
         sender_id=current_user_id,
         receiver_id=friend_id,
         messenger_id=messenger.id,
-        content=content
+        content=content,
+        image_url=data.get('image_url')
     )
     db.session.add(new_message)
     db.session.commit()
@@ -166,6 +175,7 @@ def send_message_api():
     message_json = {
         'id': new_message.id,
         'content': new_message.content,
+        'image_url': new_message.image_url,
         'sender': current_user.username,
         'sender_id': current_user_id,
         'chat_id': messenger.id,
@@ -177,4 +187,37 @@ def send_message_api():
     socketio.emit("new_message", message_json, room=f'user_{current_user_id}')
 
     return jsonify({'success': True, 'message': message_json}), 200
+
+@bp_chat.route("/api/upload_chat_image", methods=['POST'])
+@login_required
+def upload_chat_image():
+    """Upload an image for chat messages"""
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'message': 'No image file provided'}), 400
+
+    try:
+        file = request.files['image']
+
+        # Validate the image
+        validated_file = post_service.validate_image(file)
+
+        # Save the image
+        upload_folder = os.path.join('app', 'static', 'uploads', 'chat')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        file_extension = validated_file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+        file_path = os.path.join(upload_folder, unique_filename)
+
+        validated_file.save(file_path)
+
+        image_url = f"uploads/chat/{unique_filename}"
+
+        return jsonify({
+            'success': True,
+            'image_url': image_url
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
