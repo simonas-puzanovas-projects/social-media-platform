@@ -1,18 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { notificationsWindowOpen, unreadNotificationCount } from '$lib/stores/notificationsStore';
-
-	interface Notification {
-		id: number;
-		type: string;
-		message: string;
-		data: any;
-		is_read: boolean;
-		created_at: string;
-	}
+	import { notificationsWindowOpen, unreadNotificationCount, notifications, setNotifications, markAllAsRead, clearAllNotifications, type Notification } from '$lib/stores/notificationsStore';
 
 	let activeTab = 'all';
-	let notifications: Notification[] = [];
 	let loading = false;
 	let error = '';
 	let successMessage = '';
@@ -25,11 +15,10 @@
 				credentials: 'include'
 			});
 			if (!response.ok) throw new Error('Failed to fetch notifications');
-			notifications = await response.json();
+			const fetchedNotifications = await response.json();
 
-			// Update unread count
-			const unreadCount = notifications.filter(n => !n.is_read).length;
-			unreadNotificationCount.set(unreadCount);
+			// Update the store with fetched notifications
+			setNotifications(fetchedNotifications);
 
 			loading = false;
 		} catch (err) {
@@ -49,6 +38,19 @@
 		}
 	}
 
+	async function markNotificationsAsRead() {
+		try {
+			await fetch('http://localhost:5000/mark_notifications_read', {
+				method: 'POST',
+				credentials: 'include'
+			});
+			// Update local store to mark all as read
+			markAllAsRead();
+		} catch (err) {
+			console.error('Failed to mark notifications as read:', err);
+		}
+	}
+
 	async function respondToFriendRequest(friendshipId: number, response: string) {
 		try {
 			const res = await fetch('http://localhost:5000/respond_friend_request', {
@@ -64,6 +66,25 @@
 				await fetchNotifications();
 			} else {
 				error = data.message;
+			}
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'An error occurred';
+		}
+	}
+
+	async function clearNotifications() {
+		try {
+			const response = await fetch('http://localhost:5000/clear_notifications', {
+				method: 'POST',
+				credentials: 'include'
+			});
+			const data = await response.json();
+			if (data.success) {
+				clearAllNotifications();
+				successMessage = `Cleared ${data.deleted_count} notification${data.deleted_count !== 1 ? 's' : ''}`;
+				setTimeout(() => successMessage = '', 3000);
+			} else {
+				error = 'Failed to clear notifications';
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'An error occurred';
@@ -100,18 +121,19 @@
 			: notification.data;
 
 		return {
-			username: data.username || 'Unknown',
+			username: data.requester_username || data.username || 'Unknown',
 			friendshipId: data.friendship_id
 		};
 	}
 
 	$: filteredNotifications = activeTab === 'all'
-		? notifications
-		: notifications.filter(n => n.type === 'friend_request');
+		? $notifications
+		: $notifications.filter(n => n.type === 'friend_request');
 
 	$: if ($notificationsWindowOpen) {
 		fetchNotifications();
 		cleanupNotifications();
+		markNotificationsAsRead();
 	}
 
 	onMount(() => {
@@ -125,21 +147,28 @@
 			<!-- Header -->
 			<div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
 				<h1 class="text-xl font-semibold text-gray-900">Notifications</h1>
-				<button on:click={() => notificationsWindowOpen.set(false)} class="text-gray-400 hover:text-gray-600">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-					</svg>
-				</button>
+				<div class="flex items-center gap-2">
+					{#if $notifications.length > 0}
+						<button on:click={clearNotifications} class="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors">
+							Clear all
+						</button>
+					{/if}
+					<button on:click={() => notificationsWindowOpen.set(false)} class="text-gray-400 hover:text-gray-600">
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+						</svg>
+					</button>
+				</div>
 			</div>
 
 			<!-- Tabs -->
 			<div class="px-6 py-4 border-b border-gray-200">
 				<div class="flex gap-4">
 					<button on:click={() => switchTab('all')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'all' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
-						All {notifications.length > 0 ? `(${notifications.length})` : ''}
+						All {$notifications.length > 0 ? `(${$notifications.length})` : ''}
 					</button>
 					<button on:click={() => switchTab('friend_requests')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'friend_requests' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
-						Friend Requests {notifications.filter(n => n.type === 'friend_request').length > 0 ? `(${notifications.filter(n => n.type === 'friend_request').length})` : ''}
+						Friend Requests {$notifications.filter(n => n.type === 'friend_request').length > 0 ? `(${$notifications.filter(n => n.type === 'friend_request').length})` : ''}
 					</button>
 				</div>
 			</div>

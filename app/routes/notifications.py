@@ -91,3 +91,40 @@ def cleanup_notifications():
         'success': True,
         'message': f'Cleaned up {deleted_count} stale notifications'
     })
+
+@bp_notifications.route('/mark_notifications_read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    """Mark all unread notifications as read for the current user"""
+    current_user_id = session['user_id']
+
+    # Update all unread notifications to read
+    updated_count = Notification.query.filter_by(
+        user_id=current_user_id,
+        is_read=False
+    ).update({'is_read': True})
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'marked_read': updated_count
+    })
+
+@bp_notifications.route('/clear_notifications', methods=['POST'])
+@login_required
+def clear_notifications():
+    """Delete all notifications for the current user"""
+    current_user_id = session['user_id']
+
+    # Delete all notifications for the current user
+    deleted_count = Notification.query.filter_by(
+        user_id=current_user_id
+    ).delete()
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'deleted_count': deleted_count
+    })
