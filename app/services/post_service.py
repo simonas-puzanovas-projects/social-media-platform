@@ -1,6 +1,7 @@
 from PIL import Image
 import os
 import uuid
+from sqlalchemy.orm import joinedload
 from ..models import Post, User, PostLike, PostComment
 
 from .user_service import UserService
@@ -130,6 +131,12 @@ class PostService:
 
             self.db.session.add(new_comment)
             self.db.session.commit()
+
+            # Reload the comment with user relationship eagerly loaded
+            new_comment = PostComment.query.options(
+                joinedload(PostComment.user)
+            ).get(new_comment.id)
+
             return new_comment
 
         except PostServiceError:

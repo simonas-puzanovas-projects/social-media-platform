@@ -2,6 +2,7 @@ from .. import socketio, db
 from flask_socketio import join_room, leave_room, emit
 from flask import session
 from ..models import User, Message
+from ..services import friendship_service
 from datetime import datetime
 
 @socketio.on('connect')
@@ -9,13 +10,22 @@ def on_connect():
     if 'user_id' in session:
         user_id = session['user_id']
         join_room(f'user_{user_id}')
-        
+
         # Update user online status
         user = User.query.get(user_id)
         if user:
             user.is_online = True
             user.last_seen = datetime.utcnow()
             db.session.commit()
+
+            # Notify all friends that this user is online
+            friends = friendship_service.get_friends_query(user_id).all()
+            for friend, _ in friends:
+                socketio.emit('user_status_changed', {
+                    'user_id': user_id,
+                    'username': user.username,
+                    'is_online': True
+                }, room=f'user_{friend.id}')
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -29,6 +39,16 @@ def on_disconnect():
             user.is_online = False
             user.last_seen = datetime.utcnow()
             db.session.commit()
+
+            # Notify all friends that this user is offline
+            friends = friendship_service.get_friends_query(user_id).all()
+            for friend, _ in friends:
+                socketio.emit('user_status_changed', {
+                    'user_id': user_id,
+                    'username': user.username,
+                    'is_online': False,
+                    'last_seen': user.last_seen.isoformat() if user.last_seen else None
+                }, room=f'user_{friend.id}')
 
 @socketio.on('mark_read')
 def mark_messages_read(data):

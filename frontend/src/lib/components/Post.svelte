@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { fly, fade } from 'svelte/transition';
+	import { getSocket } from '$lib/socket';
+	import type { Socket } from 'socket.io-client';
+
 	interface PostProps {
 		id: number;
 		owner_name: string;
@@ -6,6 +11,7 @@
 		created_at: string;
 		likes: Array<{ user_id: number; username: string }>;
 		current_user_id?: number;
+		current_username?: string;
 		owner_id?: number;
 		comment_count?: number;
 	}
@@ -34,6 +40,7 @@
 	let postingComment = $state(false);
 	let commentError = $state('');
 	let expandedReplies = $state<Set<number>>(new Set());
+	let socket: Socket;
 
 	async function handleLike() {
 		try {
@@ -90,24 +97,35 @@
 	async function postComment() {
 		if (!newComment.trim()) return;
 
+		const content = newComment.trim();
+		newComment = ''; // Clear input immediately for better UX
+
 		try {
 			postingComment = true;
 			commentError = '';
+
 			const response = await fetch(`http://localhost:5000/api/comment/${post.id}`, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ comment: newComment.trim() })
+				body: JSON.stringify({ comment: content })
 			});
 
 			if (response.ok) {
-				newComment = '';
-				await loadComments();
+				const data = await response.json();
+				// Add comment to UI immediately (socket event will be ignored due to duplicate check)
+				const commentExists = comments.some(c => c.id === data.comment.id);
+				if (!commentExists) {
+					comments = [data.comment, ...comments];
+					commentCount += 1;
+				}
 			} else {
+				newComment = content; // Restore on error
 				const data = await response.json();
 				commentError = data.message || 'Failed to post comment';
 			}
 		} catch (error) {
+			newComment = content; // Restore on error
 			console.error('Failed to post comment:', error);
 			commentError = 'Failed to post comment';
 		} finally {
@@ -118,28 +136,48 @@
 	async function postReply(parentId: number) {
 		if (!replyContent.trim()) return;
 
+		const content = replyContent.trim();
+		replyContent = ''; // Clear input immediately
+		replyingTo = null;
+
 		try {
 			postingComment = true;
 			commentError = '';
+
 			const response = await fetch(`http://localhost:5000/api/comment/${post.id}`, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					comment: replyContent.trim(),
+					comment: content,
 					parent_id: parentId
 				})
 			});
 
 			if (response.ok) {
-				replyContent = '';
-				replyingTo = null;
-				await loadComments();
+				const data = await response.json();
+				// Add reply to parent comment (socket event will be ignored due to duplicate check)
+				comments = comments.map(c => {
+					if (c.id === parentId) {
+						const replyExists = c.replies.some(r => r.id === data.comment.id);
+						if (!replyExists) {
+							return { ...c, replies: [...c.replies, data.comment] };
+						}
+					}
+					return c;
+				});
+				// Expand parent to show new reply
+				expandedReplies = new Set([...expandedReplies, parentId]);
+				commentCount += 1;
 			} else {
+				replyContent = content; // Restore on error
+				replyingTo = parentId;
 				const data = await response.json();
 				commentError = data.message || 'Failed to post reply';
 			}
 		} catch (error) {
+			replyContent = content; // Restore on error
+			replyingTo = parentId;
 			console.error('Failed to post reply:', error);
 			commentError = 'Failed to post reply';
 		} finally {
@@ -150,19 +188,56 @@
 	async function deleteComment(commentId: number) {
 		if (!confirm('Are you sure you want to delete this comment?')) return;
 
+		// Store backup for potential rollback
+		const commentsBackup = JSON.parse(JSON.stringify(comments));
+		const countBackup = commentCount;
+
 		try {
+			// Optimistic update - remove comment immediately
+			const removeComment = (commentList: Comment[], id: number): { comments: Comment[], count: number } => {
+				let removedCount = 0;
+				const filtered = commentList.filter(c => {
+					if (c.id === id) {
+						// Count this comment and all its replies
+						removedCount = 1 + countReplies(c.replies);
+						return false;
+					}
+					if (c.replies && c.replies.length > 0) {
+						const result = removeComment(c.replies, id);
+						c.replies = result.comments;
+						removedCount += result.count;
+					}
+					return true;
+				});
+				return { comments: filtered, count: removedCount };
+			};
+
+			const countReplies = (replies: Comment[]): number => {
+				return replies.reduce((total, reply) => {
+					return total + 1 + countReplies(reply.replies || []);
+				}, 0);
+			};
+
+			const result = removeComment(comments, commentId);
+			comments = result.comments;
+			commentCount -= result.count;
+
 			const response = await fetch(`http://localhost:5000/api/comment/${commentId}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			});
 
-			if (response.ok) {
-				await loadComments();
-			} else {
+			if (!response.ok) {
+				// Revert on error
+				comments = commentsBackup;
+				commentCount = countBackup;
 				const data = await response.json();
 				commentError = data.message || 'Failed to delete comment';
 			}
 		} catch (error) {
+			// Revert on error
+			comments = commentsBackup;
+			commentCount = countBackup;
 			console.error('Failed to delete comment:', error);
 			commentError = 'Failed to delete comment';
 		}
@@ -232,6 +307,99 @@
 			alert('An error occurred while deleting the post');
 		}
 	}
+
+	onMount(() => {
+		socket = getSocket();
+
+		// Handle post liked events
+		const handlePostLiked = (data: any) => {
+			if (data.post_id === post.id) {
+				likeCount = data.like_count;
+				// Update isLiked if the current user liked it
+				if (data.user_id === post.current_user_id) {
+					isLiked = true;
+				}
+			}
+		};
+
+		// Handle post unliked events
+		const handlePostUnliked = (data: any) => {
+			if (data.post_id === post.id) {
+				likeCount = data.like_count;
+				// Update isLiked if the current user unliked it
+				if (data.user_id === post.current_user_id) {
+					isLiked = false;
+				}
+			}
+		};
+
+		// Handle new comment events
+		const handlePostCommented = (data: any) => {
+			if (data.post_id !== post.id) return;
+
+			// Update comment count from server
+			commentCount = data.comment_count;
+
+			// Only update UI if comments section is visible
+			if (!showComments) return;
+
+			if (data.is_reply) {
+				// Add reply to parent comment (with duplicate check)
+				const parentId = data.comment.parent_id;
+				comments = comments.map(c => {
+					if (c.id === parentId) {
+						const replyExists = c.replies.some(r => r.id === data.comment.id);
+						if (!replyExists) {
+							expandedReplies = new Set([...expandedReplies, parentId]);
+							return { ...c, replies: [...c.replies, data.comment] };
+						}
+					}
+					return c;
+				});
+			} else {
+				// Add top-level comment (with duplicate check)
+				const commentExists = comments.some(c => c.id === data.comment.id);
+				if (!commentExists) {
+					comments = [data.comment, ...comments];
+				}
+			}
+		};
+
+		// Handle comment deletion events
+		const handleCommentDeleted = (data: any) => {
+			if (data.post_id !== post.id) return;
+
+			// Update comment count from server
+			commentCount = data.comment_count;
+
+			// Only update UI if comments section is visible
+			if (!showComments) return;
+
+			// Recursively remove comment from nested structure
+			const removeComment = (commentList: Comment[], commentId: number): Comment[] => {
+				return commentList.filter(c => {
+					if (c.id === commentId) return false;
+					if (c.replies) {
+						c.replies = removeComment(c.replies, commentId);
+					}
+					return true;
+				});
+			};
+			comments = removeComment(comments, data.comment_id);
+		};
+
+		socket.on('post_liked', handlePostLiked);
+		socket.on('post_unliked', handlePostUnliked);
+		socket.on('post_commented', handlePostCommented);
+		socket.on('post_comment_deleted', handleCommentDeleted);
+
+		return () => {
+			socket.off('post_liked', handlePostLiked);
+			socket.off('post_unliked', handlePostUnliked);
+			socket.off('post_commented', handlePostCommented);
+			socket.off('post_comment_deleted', handleCommentDeleted);
+		};
+	});
 </script>
 
 <article class="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -309,7 +477,7 @@
 	{#if showComments}
 		<div class="p-4 bg-gray-50">
 			{#if commentError}
-				<div class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+				<div class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800" transition:fade="{{ duration: 200 }}">
 					{commentError}
 				</div>
 			{/if}
@@ -342,7 +510,7 @@
 			{:else}
 				<div class="space-y-4">
 					{#each comments as comment (comment.id)}
-						<div class="bg-white rounded-lg p-3">
+						<div class="bg-white rounded-lg p-3" transition:fly="{{ y: -20, duration: 300 }}">
 							<!-- Comment -->
 							<div class="flex gap-2">
 								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
@@ -382,7 +550,7 @@
 
 									<!-- Reply Input -->
 									{#if replyingTo === comment.id}
-										<div class="mt-3 flex gap-2">
+										<div class="mt-3 flex gap-2" transition:fly="{{ y: -10, duration: 200 }}">
 											<input
 												type="text"
 												bind:value={replyContent}
@@ -410,7 +578,7 @@
 									{#if comment.replies.length > 0 && expandedReplies.has(comment.id)}
 										<div class="mt-3 space-y-3 pl-4 border-l-2 border-gray-200">
 											{#each comment.replies as reply (reply.id)}
-												<div class="flex gap-2">
+												<div class="flex gap-2" transition:fly="{{ y: -10, duration: 250 }}">
 													<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
 														{reply.username[0].toUpperCase()}
 													</div>

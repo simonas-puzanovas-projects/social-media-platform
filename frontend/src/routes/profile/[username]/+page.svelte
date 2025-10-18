@@ -14,6 +14,7 @@
 			likes: Array<{ user_id: number; username: string }>;
 		}>;
 		currentUserId: number;
+		currentUsername: string;
 	}
 
 	let { data }: { data: PageData } = $props();
@@ -77,7 +78,7 @@
 			{:else}
 				<div class="space-y-4">
 					{#each posts as post (post.id)}
-						<Post post={{ ...post, current_user_id: data.currentUserId }} />
+						<Post post={{ ...post, current_user_id: data.currentUserId, current_username: data.currentUsername }} />
 					{/each}
 				</div>
 			{/if}

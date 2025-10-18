@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { friendsWindowOpen } from '$lib/stores/friendsStore';
+	import { friendsWindowOpen, friendsRefresh } from '$lib/stores/friendsStore';
+	import { getSocket } from '$lib/socket';
+	import type { Socket } from 'socket.io-client';
 
 	interface Friend {
 		id: number;
@@ -31,6 +33,7 @@
 	let loading = false;
 	let error = '';
 	let successMessage = '';
+	let socket: Socket;
 
 	async function fetchFriends() {
 		try {
@@ -128,7 +131,11 @@
 				successMessage = data.message;
 				setTimeout(() => successMessage = '', 3000);
 				await fetchReceivedRequests();
-				if (response === 'accept') await fetchFriends();
+				if (response === 'accept') {
+					await fetchFriends();
+					console.log('[FriendsWindow] Triggering friends refresh...');
+					friendsRefresh.triggerRefresh();
+				}
 			} else {
 				error = data.message;
 			}
@@ -228,6 +235,45 @@
 		fetchReceivedRequests();
 		fetchSentRequests();
 	}
+
+	onMount(() => {
+		socket = getSocket();
+
+		const handleUserStatusChanged = (data: any) => {
+			console.log('[FriendsWindow] User status changed:', data);
+			// Update the online status of the friend in the list
+			const friend = friends.find(f => f.id === data.user_id);
+			if (friend) {
+				friend.is_online = data.is_online;
+				if (data.last_seen) {
+					friend.last_seen = data.last_seen;
+				}
+				friends = friends; // Trigger reactivity
+			}
+		};
+
+		const handleFriendRequestRejected = (data: any) => {
+			console.log('[FriendsWindow] Friend request rejected:', data);
+			// Remove from sent requests
+			sentRequests = sentRequests.filter(r => r.friendship_id !== data.friendship_id);
+		};
+
+		const handleFriendRequestCancelled = (data: any) => {
+			console.log('[FriendsWindow] Friend request cancelled:', data);
+			// Remove from received requests
+			receivedRequests = receivedRequests.filter(r => r.friendship_id !== data.friendship_id);
+		};
+
+		socket.on('user_status_changed', handleUserStatusChanged);
+		socket.on('friend_request_rejected', handleFriendRequestRejected);
+		socket.on('friend_request_cancelled', handleFriendRequestCancelled);
+
+		return () => {
+			socket.off('user_status_changed', handleUserStatusChanged);
+			socket.off('friend_request_rejected', handleFriendRequestRejected);
+			socket.off('friend_request_cancelled', handleFriendRequestCancelled);
+		};
+	});
 </script>
 
 {#if $friendsWindowOpen}

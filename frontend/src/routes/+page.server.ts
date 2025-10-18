@@ -16,6 +16,7 @@ export const load: PageServerLoad = async ({fetch}) => {
     return {
         data,
         posts: postsData.posts || [],
-        currentUserId: postsData.current_user_id
+        currentUserId: postsData.current_user_id,
+        currentUsername: postsData.current_username
     };
 };

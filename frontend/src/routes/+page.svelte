@@ -15,6 +15,7 @@
 			likes: Array<{ user_id: number; username: string }>;
 		}>;
 		currentUserId: number;
+		currentUsername: string;
 	}
 
 	let { data }: { data: PageData } = $props();
@@ -44,10 +45,18 @@
 			}
 		};
 
+		const handlePostDeletedSocket = (data: any) => {
+			console.log('Post deleted via socket:', data);
+			// Remove the deleted post from the feed
+			posts = posts.filter(p => p.id !== data.post_id);
+		};
+
 		socket.on('new_post', handleNewPost);
+		socket.on('post_deleted', handlePostDeletedSocket);
 
 		return () => {
 			socket.off('new_post', handleNewPost);
+			socket.off('post_deleted', handlePostDeletedSocket);
 		};
 	});
 
@@ -69,7 +78,7 @@
 		{:else}
 			<div class="space-y-4">
 				{#each posts as post (post.id)}
-					<Post post={{ ...post, current_user_id: data.currentUserId }} />
+					<Post post={{ ...post, current_user_id: data.currentUserId, current_username: data.currentUsername }} />
 				{/each}
 			</div>
 		{/if}

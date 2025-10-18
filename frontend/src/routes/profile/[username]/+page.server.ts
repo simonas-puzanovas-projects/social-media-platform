@@ -22,7 +22,8 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		return {
 			username: data.username,
 			posts: data.posts || [],
-			currentUserId: data.current_user_id
+			currentUserId: data.current_user_id,
+			currentUsername: data.current_username
 		};
 	} catch (err) {
 		if (err instanceof Error && 'status' in err) {

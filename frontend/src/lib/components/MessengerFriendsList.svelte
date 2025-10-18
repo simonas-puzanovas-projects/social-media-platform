@@ -2,6 +2,7 @@
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import { getSocket } from '$lib/socket';
 	import { hasUnreadMessages } from '$lib/stores/messengerStore';
+	import { friendsRefresh } from '$lib/stores/friendsStore';
 	import type { Socket } from 'socket.io-client';
 
 	const dispatch = createEventDispatcher();
@@ -135,16 +136,51 @@
 			}
 		};
 
+		const handleFriendListUpdated = (data: any) => {
+			console.log('[MessengerFriendsList] Friend list updated:', data);
+			// Refresh the friend list when a friend is added or removed
+			fetchFriendsList();
+		};
+
+		const handleUserStatusChanged = (data: any) => {
+			console.log('[MessengerFriendsList] User status changed:', data);
+			// Update the online status of the user in the contacts list
+			const contact = contacts.find(c => c.id === data.user_id);
+			if (contact) {
+				contact.isOnline = data.is_online;
+				contacts = contacts; // Trigger reactivity
+			}
+		};
+
 		// Listen for new messages
 		socket.on('new_message', handleNewMessage);
 
 		// Listen for messages marked as read
 		socket.on('messages_read', handleMessagesReadInList);
 
+		// Listen for friend list updates
+		socket.on('friend_list_updated', handleFriendListUpdated);
+
+		// Listen for user status changes
+		socket.on('user_status_changed', handleUserStatusChanged);
+
+		// Subscribe to friends refresh store
+		const unsubscribe = friendsRefresh.subscribe((state) => {
+			console.log('[MessengerFriendsList] friendsRefresh update:', state);
+			if (state.shouldRefresh) {
+				console.log('[MessengerFriendsList] Refreshing friends list...');
+				fetchFriendsList();
+				friendsRefresh.reset();
+			}
+		});
+
 		// Cleanup function to remove event listeners
 		return () => {
 			socket.off('new_message', handleNewMessage);
 			socket.off('messages_read', handleMessagesReadInList);
+			socket.off('friend_list_updated', handleFriendListUpdated);
+			socket.off('user_status_changed', handleUserStatusChanged);
+			unsubscribe();
 		};
 	});
 

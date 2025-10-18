@@ -3,7 +3,7 @@ from flask import Blueprint, request, session, jsonify
 from ..helpers import create_notification, clean_notification_data
 from ..models import User, Notification, Messenger
 from ..decorators import login_required
-from .. import db
+from .. import db, socketio
 from ..services import user_service, friendship_service, notification_service
 
 bp_friends = Blueprint("bp_friends", __name__)
@@ -85,11 +85,22 @@ def respond_friend_request():
                 {'friendship_id': friendship.id, 'accepter_username': accepter.username}
             )
 
+            # Emit socket event to both users to update their friend lists
+            socketio.emit('friend_list_updated', {'action': 'friend_added'}, room=f'user_{friendship.requester_id}')
+            socketio.emit('friend_list_updated', {'action': 'friend_added'}, room=f'user_{friendship.requested_id}')
+
             return jsonify({'success': True, 'message': 'Friend request accepted!'})
 
         elif response == 'reject':
 
             try:
+                # Get friendship before deletion to get requester info
+                from ..models import Friendship
+                friendship = Friendship.query.get(friendship_id)
+                if not friendship:
+                    return jsonify({'success': False, 'message': 'Friendship not found'}), 404
+
+                requester_id = friendship.requester_id
                 friend_id = friendship_service.reject_friend_request(friendship_id, current_user_id)
 
                 notification_service.remove_friendship_history(
@@ -97,6 +108,13 @@ def respond_friend_request():
                     friend_id,
                     friendship_id
                 )
+
+                # Emit socket event to requester
+                rejecter = User.query.get(current_user_id)
+                socketio.emit('friend_request_rejected', {
+                    'friendship_id': friendship_id,
+                    'rejected_by': rejecter.username
+                }, room=f'user_{requester_id}')
 
             except Exception as e:
                 return jsonify({'success': False, 'message': str(e)})
@@ -113,6 +131,12 @@ def cancel_friend_request():
     current_user_id = session['user_id']
     
     try:
+        # Get friendship before deletion to get recipient info
+        from ..models import Friendship
+        friendship = Friendship.query.get(friendship_id)
+        if friendship:
+            requested_id = friendship.requested_id
+
         friend_id = friendship_service.cancel_friend_request(friendship_id, current_user_id)
 
         notification_service.remove_friendship_history(
@@ -121,9 +145,17 @@ def cancel_friend_request():
             friendship_id
         )
 
+        # Emit socket event to recipient
+        canceller = User.query.get(current_user_id)
+        if friendship:
+            socketio.emit('friend_request_cancelled', {
+                'friendship_id': friendship_id,
+                'cancelled_by': canceller.username
+            }, room=f'user_{requested_id}')
+
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
-    
+
     return jsonify({'success': True, 'message': 'Friend request cancelled'})
 
 @bp_friends.route('/remove_friend', methods=['POST'])
@@ -137,9 +169,13 @@ def remove_friend():
     
     try:
         friendship_service.remove_friend(current_user_id, friend_user_id)
+
+        # Emit socket event to both users to update their friend lists
+        socketio.emit('friend_list_updated', {'action': 'friend_removed'}, room=f'user_{current_user_id}')
+        socketio.emit('friend_list_updated', {'action': 'friend_removed'}, room=f'user_{friend_user_id}')
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
-    
+
     return jsonify({'success': True, 'message': 'Friend removed successfully'})
 
 # ============================================================================

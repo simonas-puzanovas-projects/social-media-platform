@@ -18,11 +18,13 @@ def index():
 @login_required
 def get_posts():
     try:
+        user = user_service.get_user(session['user_id'])
         posts = post_service.query_posts()
         return jsonify({
             'success': True,
             'posts': posts,
-            'current_user_id': session.get('user_id')
+            'current_user_id': session.get('user_id'),
+            'current_username': user.username
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -32,6 +34,7 @@ def get_posts():
 def profile(username):
     try:
         user = user_service.get_user_by_name(username)
+        current_user = user_service.get_user(session['user_id'])
         posts = post_service.query_posts(profile_user_id=int(user.id))
 
     except Exception as e:
@@ -41,7 +44,8 @@ def profile(username):
         'success': True,
         'username': username,
         'posts': posts,
-        'current_user_id': session.get('user_id')
+        'current_user_id': session.get('user_id'),
+        'current_username': current_user.username
     })
 
 
@@ -95,7 +99,16 @@ def upload_image():
 def delete_post():
     try:
         post_id = request.json.get('post_id')
-        post_service.delete_post(session["user_id"], post_id)
+        user_id = session["user_id"]
+
+        post_service.delete_post(user_id, post_id)
+
+        # Emit socket event to all users
+        socketio.emit('post_deleted', {
+            'post_id': post_id,
+            'deleted_by': user_id
+        })
+
         return jsonify({'success': True, 'message': 'Post deleted successfully'}), 200
 
     except Exception as e:
@@ -106,18 +119,39 @@ def delete_post():
 def like_post(post_id):
     try:
         post_likes = post_service.query_post_likes(post_id)
+        user_id = session["user_id"]
+        user = user_service.get_user(user_id)
 
         #unlike if already liked
         for like in post_likes:
-            if like.user_id == session["user_id"]:
+            if like.user_id == user_id:
                 post_service.remove_like(like.id)
-                return f'{len(post_likes)-1}'
+                new_count = len(post_likes) - 1
 
-        post_service.create_like(session["user_id"], post_id)
-        return f'{len(post_likes)+1}'
+                # Emit socket event for unlike
+                socketio.emit('post_unliked', {
+                    'post_id': int(post_id),
+                    'like_count': new_count,
+                    'user_id': user_id
+                })
+
+                return f'{new_count}'
+
+        post_service.create_like(user_id, post_id)
+        new_count = len(post_likes) + 1
+
+        # Emit socket event for like
+        socketio.emit('post_liked', {
+            'post_id': int(post_id),
+            'like_count': new_count,
+            'user_id': user_id,
+            'username': user.username
+        })
+
+        return f'{new_count}'
 
     except Exception as e:
-        return jsonify({'success': False, 'message': e}), 404
+        return jsonify({'success': False, 'message': str(e)}), 404
 
 @bp_index.route("/api/comment/<int:post_id>", methods=["POST"])
 @login_required
@@ -135,6 +169,19 @@ def create_comment(post_id):
             content=content,
             parent_id=parent_id
         )
+
+        # Get updated comment count
+        comment_count = post_service.get_comment_count(post_id)
+
+        # Emit socket event for new comment
+        # Include author_user_id so frontend can filter out duplicates
+        socketio.emit('post_commented', {
+            'post_id': post_id,
+            'comment': new_comment.to_dict(),
+            'comment_count': comment_count,
+            'is_reply': bool(parent_id),
+            'author_user_id': session['user_id']
+        })
 
         # Return comment data as JSON
         return jsonify({
@@ -166,7 +213,27 @@ def get_comments(post_id):
 @login_required
 def delete_comment(comment_id):
     try:
+        # Get comment info before deletion
+        from ..models import PostComment
+        comment = PostComment.query.get(comment_id)
+        if not comment:
+            return jsonify({'success': False, 'message': 'Comment not found'}), 404
+
+        post_id = comment.post_id
+
+        # Delete the comment
         post_service.delete_comment(session['user_id'], comment_id)
+
+        # Get updated comment count
+        comment_count = post_service.get_comment_count(post_id)
+
+        # Emit socket event for comment deletion
+        socketio.emit('post_comment_deleted', {
+            'post_id': post_id,
+            'comment_id': comment_id,
+            'comment_count': comment_count
+        })
+
         return jsonify({'success': True}), 200
     except PostServiceError as e:
         return jsonify({'success': False, 'message': str(e)}), 403

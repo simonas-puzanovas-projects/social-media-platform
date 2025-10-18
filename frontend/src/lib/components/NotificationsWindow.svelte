@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { notificationsWindowOpen, unreadNotificationCount, notifications, setNotifications, markAllAsRead, clearAllNotifications, type Notification } from '$lib/stores/notificationsStore';
+	import { friendsRefresh } from '$lib/stores/friendsStore';
 
 	let activeTab = 'all';
 	let loading = false;
@@ -64,6 +65,10 @@
 				successMessage = data.message;
 				setTimeout(() => successMessage = '', 3000);
 				await fetchNotifications();
+				if (response === 'accept') {
+					console.log('[NotificationsWindow] Triggering friends refresh...');
+					friendsRefresh.triggerRefresh();
+				}
 			} else {
 				error = data.message;
 			}
