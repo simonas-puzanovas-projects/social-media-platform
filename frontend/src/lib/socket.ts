@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { writable } from 'svelte/store';
+import { addNotification, type Notification } from './stores/notificationsStore';
 
 let socket: Socket | null = null;
 
@@ -26,6 +27,12 @@ export function getSocket(): Socket {
 
 		socket.on('connect_error', (error) => {
 			console.error('Socket connection error:', error);
+		});
+
+		// Listen for real-time notifications
+		socket.on('new_notification', (notification: Notification) => {
+			console.log('New notification received:', notification);
+			addNotification(notification);
 		});
 	}
 

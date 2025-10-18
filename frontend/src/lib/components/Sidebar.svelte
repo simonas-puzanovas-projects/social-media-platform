@@ -31,10 +31,15 @@
 			</svg>
 		</button>
 
-		<button on:click={() => notificationsWindowOpen.set(true)} class={nav_icon_tailwind} title="Notifications">
+		<button on:click={() => notificationsWindowOpen.set(true)} class="{nav_icon_tailwind} relative" title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
 			</svg>
+			{#if $unreadNotificationCount > 0}
+				<span class="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+					{$unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount}
+				</span>
+			{/if}
 		</button>
 	</nav>
 
@@ -73,10 +78,15 @@
 			</svg>
 		</button>
 
-		<button on:click={() => notificationsWindowOpen.set(true)} class={mobile_nav_icon} title="Notifications">
+		<button on:click={() => notificationsWindowOpen.set(true)} class="{mobile_nav_icon} relative" title="Notifications">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
 			</svg>
+			{#if $unreadNotificationCount > 0}
+				<span class="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+					{$unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount}
+				</span>
+			{/if}
 		</button>
 	</nav>
 </div>
@@ -85,7 +95,7 @@
 	import { goto } from '$app/navigation';
 	import { friendsWindowOpen } from '$lib/stores/friendsStore';
 	import { postCreationWindowOpen } from '$lib/stores/postCreationStore';
-	import { notificationsWindowOpen } from '$lib/stores/notificationsStore';
+	import { notificationsWindowOpen, unreadNotificationCount } from '$lib/stores/notificationsStore';
 	import { disconnectSocket } from '$lib/socket';
 
 	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"
