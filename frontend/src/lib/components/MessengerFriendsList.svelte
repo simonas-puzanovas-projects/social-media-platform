@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import { getSocket } from '$lib/socket';
+	import { hasUnreadMessages } from '$lib/stores/messengerStore';
 	import type { Socket } from 'socket.io-client';
 
 	const dispatch = createEventDispatcher();
@@ -37,6 +38,12 @@
 	$: filteredAll = allContacts.filter(c =>
 		c.name.toLowerCase().includes(searchQuery.toLowerCase())
 	);
+
+	// Update hasUnreadMessages store whenever contacts change
+	$: {
+		const hasUnread = contacts.some(c => (c.unreadCount || 0) > 0);
+		hasUnreadMessages.set(hasUnread);
+	}
 
 	function selectContact(contactId: number) {
 		selectedContactId = contactId;

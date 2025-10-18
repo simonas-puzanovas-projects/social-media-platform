@@ -19,10 +19,13 @@
 			</svg>
 		</button>
 
-		<a href="/messenger" class={nav_icon_tailwind} title="Messenger">
+		<a href="/messenger" class="{nav_icon_tailwind} relative" title="Messenger">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
 			</svg>
+			{#if $hasUnreadMessages}
+				<span class="absolute top-1 right-1 bg-red-500 w-2 h-2 rounded-full"></span>
+			{/if}
 		</a>
 
 		<button on:click={() => friendsWindowOpen.set(true)} class={nav_icon_tailwind} title="Friends">
@@ -66,10 +69,13 @@
 			</svg>
 		</button>
 
-		<a href="/messenger" class={mobile_nav_icon} title="Messenger">
+		<a href="/messenger" class="{mobile_nav_icon} relative" title="Messenger">
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
 			</svg>
+			{#if $hasUnreadMessages}
+				<span class="absolute top-0 right-0 bg-red-500 w-2 h-2 rounded-full"></span>
+			{/if}
 		</a>
 
 		<button on:click={() => friendsWindowOpen.set(true)} class={mobile_nav_icon} title="Friends">
@@ -96,6 +102,7 @@
 	import { friendsWindowOpen } from '$lib/stores/friendsStore';
 	import { postCreationWindowOpen } from '$lib/stores/postCreationStore';
 	import { notificationsWindowOpen, unreadNotificationCount } from '$lib/stores/notificationsStore';
+	import { hasUnreadMessages } from '$lib/stores/messengerStore';
 	import { disconnectSocket } from '$lib/socket';
 
 	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"

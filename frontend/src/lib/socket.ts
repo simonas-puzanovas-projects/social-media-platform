@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { writable } from 'svelte/store';
 import { addNotification, type Notification } from './stores/notificationsStore';
+import { fetchUnreadMessageStatus } from './stores/messengerStore';
 
 let socket: Socket | null = null;
 
@@ -33,6 +34,16 @@ export function getSocket(): Socket {
 		socket.on('new_notification', (notification: Notification) => {
 			console.log('New notification received:', notification);
 			addNotification(notification);
+		});
+
+		// Listen for new messages to update unread status
+		socket.on('new_message', () => {
+			fetchUnreadMessageStatus();
+		});
+
+		// Listen for messages being read to update unread status
+		socket.on('messages_read', () => {
+			fetchUnreadMessageStatus();
 		});
 	}
 

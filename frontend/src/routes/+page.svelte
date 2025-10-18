@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import Post from '$lib/components/Post.svelte';
 	import { getSocket } from '$lib/socket';
+	import { fetchUnreadMessageStatus } from '$lib/stores/messengerStore';
 	import type { Socket } from 'socket.io-client';
 
 	interface PageData {
@@ -30,6 +31,9 @@
 
 		// Connect to socket for real-time updates
 		socket = getSocket();
+
+		// Fetch initial unread message status
+		fetchUnreadMessageStatus();
 
 		const handleNewPost = (postData: any) => {
 			console.log('New post received:', postData);
