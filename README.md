@@ -1,333 +1,706 @@
 # Social Media Platform
 
-A comprehensive Flask-based social media platform with real-time messaging, image sharing, and social networking features.
+A full-stack real-time social media platform built with Flask and Svelte, featuring posts, messaging, friendships, and live notifications.
 
-## Project Overview
+![Application Demo](demos/posting.gif)
 
-This is a full-featured web-based social media platform built with Flask that provides complete social networking functionality including user authentication, friend management, real-time chat messaging, image posting, and live notifications. The application leverages WebSocket connections for real-time communication and features a modern, responsive user interface.
+## ✨ Features
 
-## Current Features
+### 📱 Posts & Media
+- **Create Image Posts** - Share moments with image uploads (up to 10MB)
+- **Like & Unlike** - Express appreciation for posts with real-time like counters
+- **Comments & Replies** - Engage with nested comment threads
+- **Delete Posts** - Full control over your content
 
-### ✅ Authentication System
-- User registration and login with secure password hashing
-- Session management with login-required decorators
-- Custom error handling for authentication failures
-- Logout functionality with session cleanup
+![Posts, Comments, and Likes Demo](demos/post_comm_like.gif)
 
-### ✅ User Management & Profiles
-- User profiles with online status tracking
-- Last seen timestamps and activity indicators
-- Profile pages displaying user posts
-- Real-time online/offline status updates
+*Creating posts, liking, and commenting with real-time updates*
 
-### ✅ Posts & Image Sharing
-- **Image Upload System**: Upload images with drag-and-drop interface
-- **Posts Feed**: Chronological timeline of all user posts
-- **Image Processing**: Automatic image validation and resizing using Pillow
-- **File Management**: Secure file storage with unique filenames
-- **Post Management**: Delete your own posts with file cleanup
-- **Profile Views**: View individual user profiles and their posts
+### 💬 Real-time Messaging
+- **One-on-One Chat** - Private conversations with friends
+- **Image Sharing** - Send photos in messages
+- **Read Receipts** - See when messages are read
+- **Unread Counter** - Track new messages at a glance
+- **Online Status** - See who's currently active
 
-### ✅ Friend System
-- Send friend requests to other users
-- Accept/reject incoming friend requests
-- Cancel sent friend requests
-- Remove existing friends
-- Real-time friendship status updates
-- Complete REST API endpoints for friend management
-- Friend search with live results and status indicators
+![Real-time Messaging Demo](demos/chatting.gif)
 
-### ✅ Real-time Chat System
-- **Direct Messaging**: Private chat between friends
-- **Message History**: Persistent message storage and retrieval
-- **Real-time Delivery**: Instant message delivery using WebSocket
-- **Chat Interface**: Modern chat UI with message bubbles
-- **Friend List**: Chat-specific friends list with online status
-- **Message Threading**: Organized conversation threads
+*Real-time messaging with instant delivery and read receipts*
 
-### ✅ Notifications System
-- Real-time notification delivery using WebSocket
-- Friend request notifications
-- Chat message notifications
-- Visual notification indicators and counters
-- Toast notification system with auto-dismiss
-- Notification cleanup for expired/invalid notifications
+### 👥 Social Features
+- **Friend Requests** - Send, accept, or reject friend requests
+- **Friend Management** - View your friends list and remove friends
+- **User Search** - Find users by username
 
-### ✅ Real-time Features
-- WebSocket integration with Flask-SocketIO
-- Live online/offline status updates
-- Real-time message delivery
-- Instant notification delivery
-- Socket room management for private communications
+![Friend Requests Demo](demos/adding_friend.gif)
 
-## Technology Stack
+*Sending and managing friend requests with live notifications*
 
-### Backend
-- **Backend Framework**: Flask 3.0.0 (Python)
-- **Database**: SQLite with SQLAlchemy 3.1.1 ORM
-- **Real-time Communication**: Flask-SocketIO 5.3.6 for WebSocket connections
-- **Image Processing**: Pillow 10.0.1 for image validation and processing
-- **Security**: Werkzeug 3.0.1 for password hashing and secure filename handling
-- **Configuration**: python-dotenv 1.0.0 for environment management
-- **File Storage**: Local filesystem with secure upload handling
+### 👤 User Profiles
+- **Customizable Profiles** - Display name, bio, and avatar
+- **Profile Pages** - View any user's profile with their posts
+- **Avatar Upload** - Personalize your account with profile pictures
+- **Password Management** - Secure password changes
+- **Account Deletion** - Full control over your data
 
-### Frontend
-- **Framework**: SvelteKit 2.43.2 with Svelte 5
-- **Build Tool**: Vite 7.1.7
-- **Styling**: TailwindCSS 4.1.13
-- **Language**: TypeScript 5.9.2
-- **Real-time**: Socket.IO Client 4.8.1
-- **Linting**: ESLint 9 with Svelte plugin
+![Profile Settings Demo](demos/settings.gif)
 
-## Database Models
+*Customizing profile settings, uploading avatars, and managing account*
 
-### User
-- **Core Fields**: ID, username, password_hash
-- **Activity Tracking**: is_online, last_seen timestamps
-- **Relationships**: Links to friendships, notifications, posts, and messages
+### 🔐 Authentication
+- **Secure Sign Up/Sign In** - Password-hashed authentication
+- **Session Management** - Persistent login sessions
+- **Protected Routes** - Secure API endpoints
 
-### Friendship
-- **Relationship Tracking**: requester_id, requested_id with foreign keys
-- **Status Management**: pending/accepted status with timestamps
-- **Bidirectional Support**: Handles mutual friendship connections
-
-### Post
-- **Content Management**: owner (user_id), image_path for uploaded images
-- **Timestamps**: created_at, updated_at for post lifecycle
-- **File Integration**: Links to physical image files in uploads directory
-
-### Messenger
-- **Chat Rooms**: first_user_id, second_user_id for private conversations
-- **Message Threading**: Container for organizing message exchanges
-- **Friend Integration**: Only friends can create messenger threads
-
-### Message
-- **Communication**: sender_id, receiver_id, content for message data
-- **Threading**: messenger_id to group messages in conversations
-- **History**: created_at timestamps for chronological ordering
-
-### Notification
-- **User Targeting**: user_id for notification delivery
-- **Content**: type, message, JSON data for structured information
-- **State Tracking**: is_read status and created_at timestamps
-
-## File Structure
-
-```
-social-media-platform/
-├── main.py                       # Application entry point with database initialization
-├── requirements.txt              # Python dependencies (Flask, SocketIO, Pillow, etc.)
-├── app/                          # Backend Flask application
-│   ├── __init__.py              # App factory, SocketIO, and database configuration
-│   ├── config.py                # Application configuration management
-│   ├── decorators.py            # Custom decorators (login_required, etc.)
-│   ├── error_handlers.py        # JSON error response handlers
-│   ├── models/                  # Database models
-│   │   └── __init__.py          # User, Friendship, Post, Message, Messenger, Notification
-│   ├── helpers/                 # Utility functions
-│   │   ├── __init__.py          # Helper function exports
-│   │   ├── chat.py              # Chat-related helper functions
-│   │   ├── friends.py           # Friendship management helpers
-│   │   └── notifications.py     # Notification system helpers
-│   ├── routes/                  # REST API route blueprints
-│   │   ├── __init__.py          # Blueprint registration
-│   │   ├── auth.py              # Authentication API (login/register/logout)
-│   │   ├── index.py             # Posts API (feed, upload, comments)
-│   │   ├── chat.py              # Chat API (messages, conversations)
-│   │   ├── friends.py           # Friends API (search, requests, management)
-│   │   └── notifications.py     # Notifications API (delivery, cleanup)
-│   ├── services/                # Business logic services
-│   │   ├── __init__.py          # Service initialization
-│   │   ├── user_service.py      # User management logic
-│   │   ├── post_service.py      # Post and comment logic
-│   │   ├── friendship_service.py # Friendship logic
-│   │   └── notification_service.py # Notification logic
-│   ├── sockets/                 # WebSocket event handlers
-│   │   └── __init__.py          # Socket.IO events for real-time features
-│   └── static/                  # Static file storage
-│       └── uploads/             # User-uploaded image storage
-├── frontend/                     # SvelteKit frontend application
-│   ├── src/
-│   │   ├── routes/              # SvelteKit routes and pages
-│   │   ├── lib/
-│   │   │   └── components/      # Svelte UI components
-│   │   ├── app.html             # HTML shell
-│   │   └── app.css              # Global styles
-│   ├── static/                  # Static assets
-│   ├── package.json             # Node dependencies
-│   ├── svelte.config.js         # SvelteKit configuration
-│   ├── tailwind.config.js       # Tailwind CSS configuration
-│   └── vite.config.ts           # Vite build configuration
-└── instance/                    # Database and instance-specific files
-```
-
-## API Endpoints
-
-All endpoints return JSON responses. The Flask backend serves as a REST API for the Svelte frontend.
-
-### Authentication API (`bp_auth`)
-- **`POST /api/signin`** - Authenticate user and create session
-- **`POST /api/signup`** - Register new user account
-- **`GET /api/current_user`** - Get currently authenticated user info
-- **`GET /logout`** - Clear session and logout user
-
-### Posts & Comments API (`bp_index`)
-- **`GET /`** - Health check endpoint (requires authentication)
-- **`GET /api/profile/<username>`** - Get user profile and their posts (JSON)
-- **`POST /upload_image`** - Upload image post with validation
-- **`POST /delete_post`** - Delete user's own post with file cleanup
-- **`POST /api/like_post/<post_id>`** - Like/unlike a post, returns updated count
-- **`POST /api/comment/<post_id>`** - Create comment or reply on a post
-- **`GET /api/comments/<post_id>`** - Get all comments for a post
-- **`DELETE /api/comment/<comment_id>`** - Delete user's own comment
-- **`GET /api/comment_count/<post_id>`** - Get comment count for a post
-
-### Chat & Messaging API (`bp_chat`)
-- **`GET /api/friend_list`** - Get friends list with last message info for messenger
-- **`GET /api/messages/<friend_id>`** - Get all messages with a friend (marks as read)
-- **`POST /api/send_message`** - Send message to friend (JSON body: friend_id, content)
-
-### Friends Management API (`bp_friends`)
-- **`GET /search_users?q=<query>`** - Search users with friendship status
-- **`POST /send_friend_request`** - Send friend request (JSON body: user_id)
-- **`POST /respond_friend_request`** - Accept/reject request (JSON body: friendship_id, response)
-- **`POST /cancel_friend_request`** - Cancel sent request (JSON body: friendship_id)
-- **`POST /remove_friend`** - Remove existing friendship (JSON body: friend_user_id)
-- **`GET /api/friends`** - Get current user's accepted friends list
-- **`GET /api/friend_requests`** - Get incoming friend requests
-- **`GET /api/sent_requests`** - Get sent pending friend requests
-
-### Notifications API (`bp_notifications`)
-- **`GET /notifications`** - Get user notifications with auto-cleanup
-- **`POST /cleanup_notifications`** - Manually clean up stale notifications
-
-### WebSocket Events (Real-time)
-- **`connect`** - User connection with online status update
-- **`disconnect`** - User disconnection with offline status
-- **`new_message`** - Real-time message delivery to chat recipients
-- **`friend_request_sent`** - Live friend request notifications
-- **`notification_update`** - Real-time notification delivery
-
-## Setup & Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+ (recommended: Python 3.11+)
-- Node.js 18+ and npm (for frontend)
-- pip (Python package manager)
+- Python 3.8+
+- Node.js 16+
+- npm or yarn
 
-### Installation Steps
+### Backend Setup
 
-#### Backend Setup
-
-1. **Clone the Repository**
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone <your-repo-url>
    cd social-media-platform
    ```
 
-2. **Create Virtual Environment**
+2. **Create a virtual environment**
    ```bash
    python -m venv venv
+
+   # Windows
+   venv\Scripts\activate
+
+   # macOS/Linux
+   source venv/bin/activate
    ```
 
-3. **Activate Virtual Environment**
-   - **Windows**: `venv\Scripts\activate`
-   - **Linux/Mac**: `source venv/bin/activate`
-
-4. **Install Python Dependencies**
+3. **Install Python dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Environment Configuration** (optional)
+4. **Set up environment variables** (optional)
    ```bash
-   cp .env.example .env
-   ```
-   Edit the `.env` file to configure your environment variables if needed. The application will work with default settings.
-
-6. **Create Upload Directory** (for image uploads)
-   ```bash
-   mkdir -p app/static/uploads
+   # Create .env file
+   SECRET_KEY=your-secret-key-here
+   DATABASE_URL=sqlite:///instance/social_media.db
    ```
 
-7. **Run Backend Server**
+5. **Initialize the database**
    ```bash
    python main.py
    ```
+   The application will automatically:
+   - Create the database
+   - Run migrations
+   - Create an admin user (username: `admin`, password: `admin`)
 
-   The application will:
-   - Automatically create the SQLite database
-   - Set up all required tables (User, Friendship, Post, Message, etc.)
-   - Create a default admin user (`admin` / `password123`)
-   - Start Flask server on `http://localhost:5000`
+### Frontend Setup
 
-#### Frontend Setup
-
-1. **Navigate to Frontend Directory**
+1. **Navigate to frontend directory**
    ```bash
    cd frontend
    ```
 
-2. **Install Node Dependencies**
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. **Run Frontend Development Server**
+3. **Run the development server**
    ```bash
    npm run dev
    ```
 
-   The frontend will start on `http://localhost:5173` (or another port if 5173 is busy)
+### Running the Application
 
-4. **Build for Production** (optional)
+1. **Start the Flask backend** (from project root)
    ```bash
+   python main.py
+   ```
+   Backend will run on `http://localhost:5000`
+
+2. **Start the Svelte frontend** (from frontend directory)
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+   Frontend will run on `http://localhost:5173`
+
+3. **Open your browser** and navigate to `http://localhost:5173`
+
+4. **Login with default admin account**
+   - Username: `admin`
+   - Password: `admin`
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Svelte 5** - Reactive component framework
+- **SvelteKit 2** - Full-stack framework with routing
+- **Tailwind CSS 4** - Utility-first styling
+- **Socket.IO Client** - Real-time WebSocket communication
+- **TypeScript** - Type safety
+
+### Backend
+- **Flask 3.0** - Python web framework
+- **SQLAlchemy** - ORM for database operations
+- **Flask-SocketIO** - WebSocket support
+- **Werkzeug** - Password hashing and security
+- **Pillow** - Image processing
+- **SQLite** - Database (easily replaceable with PostgreSQL/MySQL)
+
+## 📦 Database Schema
+
+### User
+Stores user account information and profile data.
+- `id` - Primary key
+- `username` - Unique username
+- `password_hash` - Hashed password
+- `display_name` - Display name shown on profile
+- `bio` - User biography
+- `avatar_path` - Path to avatar image
+- `is_online` - Online status
+- `last_seen` - Timestamp of last activity
+- `created_at` - Account creation timestamp
+
+### Post
+Represents user posts with images.
+- `id` - Primary key
+- `owner` - Foreign key to User
+- `image_path` - Path to post image
+- `created_at`, `updated_at` - Timestamps
+- **Relationships**: likes (PostLike), comments (PostComment)
+
+### PostLike
+Tracks likes on posts.
+- `id` - Primary key
+- `user_id` - Foreign key to User
+- `post_id` - Foreign key to Post
+- `created_at` - Timestamp
+
+### PostComment
+Stores comments and nested replies.
+- `id` - Primary key
+- `user_id` - Foreign key to User
+- `post_id` - Foreign key to Post
+- `parent_id` - Foreign key to parent comment (for nested replies)
+- `content` - Comment text
+- `created_at` - Timestamp
+
+### Friendship
+Manages friend relationships.
+- `id` - Primary key
+- `requester_id` - User who sent request
+- `requested_id` - User who received request
+- `status` - pending/accepted/rejected
+- `created_at` - Timestamp
+
+### Messenger
+Contains chat conversations between two users.
+- `id` - Primary key
+- `first_user_id`, `second_user_id` - Foreign keys to User
+- **Relationships**: messages (Message)
+
+### Message
+Individual chat messages.
+- `id` - Primary key
+- `sender_id`, `receiver_id` - Foreign keys to User
+- `messenger_id` - Foreign key to Messenger
+- `content` - Message text
+- `image_url` - Path to image (optional)
+- `is_read` - Read status
+- `created_at` - Timestamp
+
+### Notification
+User notifications for various events.
+- `id` - Primary key
+- `user_id` - Foreign key to User
+- `type` - Notification type (friend_request, friend_request_accepted, etc.)
+- `message` - Notification message
+- `data` - JSON data for the notification
+- `is_read` - Read status
+- `created_at` - Timestamp
+
+## 🔌 API Documentation
+
+### Authentication
+
+#### Sign In
+```http
+POST /api/signin
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+#### Sign Up
+```http
+POST /api/signup
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string",
+  "display_name": "string"
+}
+```
+
+#### Get Current User
+```http
+GET /api/current_user
+```
+
+#### Logout
+```http
+GET /logout
+```
+
+### Posts
+
+#### Get Posts Feed
+```http
+GET /api/posts
+```
+Returns all posts ordered by most recent.
+
+#### Get User Profile
+```http
+GET /api/profile/<username>
+```
+Returns user info and their posts.
+
+#### Create Post
+```http
+POST /upload_image
+Content-Type: multipart/form-data
+
+{
+  "image": <file>
+}
+```
+
+#### Delete Post
+```http
+POST /delete_post
+Content-Type: application/json
+
+{
+  "post_id": <int>
+}
+```
+
+#### Like/Unlike Post
+```http
+POST /api/like_post/<post_id>
+```
+Toggles like status for the post.
+
+### Comments
+
+#### Get Post Comments
+```http
+GET /api/comments/<post_id>
+```
+
+#### Create Comment
+```http
+POST /api/comment/<post_id>
+Content-Type: application/json
+
+{
+  "content": "string",
+  "parent_id": <int> // Optional, for nested replies
+}
+```
+
+#### Delete Comment
+```http
+DELETE /api/comment/<comment_id>
+```
+
+#### Get Comment Count
+```http
+GET /api/comment_count/<post_id>
+```
+
+### Friends
+
+#### Search Users
+```http
+GET /search_users?q=<query>
+```
+
+#### Send Friend Request
+```http
+POST /send_friend_request
+Content-Type: application/json
+
+{
+  "username": "string"
+}
+```
+
+#### Respond to Friend Request
+```http
+POST /respond_friend_request
+Content-Type: application/json
+
+{
+  "request_id": <int>,
+  "action": "accept" | "reject"
+}
+```
+
+#### Cancel Friend Request
+```http
+POST /cancel_friend_request
+Content-Type: application/json
+
+{
+  "request_id": <int>
+}
+```
+
+#### Remove Friend
+```http
+POST /remove_friend
+Content-Type: application/json
+
+{
+  "friend_id": <int>
+}
+```
+
+#### Get Friends List
+```http
+GET /api/friends
+```
+
+#### Get Friend Requests
+```http
+GET /api/friend_requests
+```
+
+#### Get Sent Requests
+```http
+GET /api/sent_requests
+```
+
+### Messaging
+
+#### Get Friend List with Last Messages
+```http
+GET /api/friend_list
+```
+Returns friends with last message preview and unread count.
+
+#### Get Message History
+```http
+GET /api/messages/<friend_id>
+```
+
+#### Send Message
+```http
+POST /api/send_message
+Content-Type: application/json
+
+{
+  "receiver_id": <int>,
+  "content": "string"
+}
+```
+
+#### Upload Chat Image
+```http
+POST /api/upload_chat_image
+Content-Type: multipart/form-data
+
+{
+  "image": <file>,
+  "receiver_id": <int>
+}
+```
+
+### User Settings
+
+#### Get User Settings
+```http
+GET /api/user/settings
+```
+
+#### Update Profile
+```http
+POST /api/user/profile
+Content-Type: application/json
+
+{
+  "display_name": "string",
+  "bio": "string"
+}
+```
+
+#### Change Password
+```http
+POST /api/user/password
+Content-Type: application/json
+
+{
+  "current_password": "string",
+  "new_password": "string"
+}
+```
+
+#### Upload Avatar
+```http
+POST /api/user/avatar
+Content-Type: multipart/form-data
+
+{
+  "avatar": <file>
+}
+```
+
+#### Delete Account
+```http
+DELETE /api/user/account
+Content-Type: application/json
+
+{
+  "password": "string"
+}
+```
+
+### Notifications
+
+Endpoints for managing user notifications (view, read status, etc.)
+
+## 🌐 Real-time Features (WebSocket)
+
+The application uses Socket.IO for real-time communication. Here are the key events:
+
+### Client → Server Events
+- `connect` - User connects and joins personal room
+
+### Server → Client Events
+- `new_post` - Broadcast when a new post is created
+- `post_deleted` - Notify when a post is deleted
+- `post_liked` - Real-time like notification
+- `post_unliked` - Real-time unlike notification
+- `post_commented` - New comment notification
+- `post_comment_deleted` - Comment deletion notification
+- `new_message` - Incoming chat message
+- `messages_read` - Message read status update
+- `user_status_changed` - User online/offline status change
+- `friend_list_updated` - Friend list changes
+- `friend_request_rejected` - Friend request rejection
+- `friend_request_cancelled` - Friend request cancellation
+
+## 📁 Project Structure
+
+```
+social-media-platform/
+├── app/                              # Flask backend
+│   ├── __init__.py                   # Flask app factory
+│   ├── config.py                     # Configuration management
+│   ├── decorators.py                 # Custom decorators (@login_required)
+│   ├── error_handlers.py             # Global error handling
+│   ├── models/                       # SQLAlchemy database models
+│   │   ├── user.py                   # User model
+│   │   ├── post.py                   # Post, PostLike, PostComment models
+│   │   ├── friendship.py             # Friendship model
+│   │   ├── messenger.py              # Messenger, Message models
+│   │   └── notification.py           # Notification model
+│   ├── routes/                       # API route blueprints
+│   │   ├── auth.py                   # Authentication routes
+│   │   ├── posts.py                  # Post CRUD routes
+│   │   ├── comments.py               # Comment routes
+│   │   ├── friends.py                # Friendship routes
+│   │   ├── chat.py                   # Messaging routes
+│   │   ├── user_settings.py          # User settings routes
+│   │   └── notifications.py          # Notification routes
+│   ├── services/                     # Business logic layer
+│   │   ├── user_service.py           # User operations
+│   │   ├── post_service.py           # Post operations
+│   │   ├── friendship_service.py     # Friendship logic
+│   │   ├── user_settings_service.py  # Settings management
+│   │   └── notification_service.py   # Notification handling
+│   ├── sockets/                      # Socket.IO event handlers
+│   │   └── events.py                 # WebSocket events
+│   ├── helpers/                      # Helper functions
+│   │   ├── chat.py                   # Chat utilities
+│   │   ├── friends.py                # Friend helpers
+│   │   └── notifications.py          # Notification helpers
+│   └── static/                       # Static files
+│       └── uploads/                  # User-uploaded files
+│           ├── chat/                 # Chat images
+│           └── *.jpg/png             # Post images & avatars
+├── frontend/                         # Svelte SvelteKit frontend
+│   ├── src/
+│   │   ├── routes/                   # SvelteKit pages
+│   │   │   ├── +page.svelte          # Main feed (/)
+│   │   │   ├── signin/               # Login page
+│   │   │   ├── signup/               # Registration page
+│   │   │   ├── profile/[username]/   # User profile
+│   │   │   ├── messenger/            # Chat interface
+│   │   │   └── settings/             # User settings
+│   │   ├── lib/
+│   │   │   └── components/           # Reusable components
+│   │   │       ├── Sidebar.svelte
+│   │   │       ├── Post.svelte
+│   │   │       ├── CreatePostWindow.svelte
+│   │   │       ├── FriendsWindow.svelte
+│   │   │       ├── ChatWindow.svelte
+│   │   │       ├── NotificationsWindow.svelte
+│   │   │       └── MessengerFriendsList.svelte
+│   │   ├── app.html                  # HTML template
+│   │   └── app.css                   # Global styles (Tailwind)
+│   ├── package.json                  # Frontend dependencies
+│   ├── svelte.config.js              # SvelteKit configuration
+│   ├── vite.config.js                # Vite bundler config
+│   └── tailwind.config.js            # Tailwind CSS config
+├── migrations/                       # Alembic database migrations
+├── instance/                         # Instance-specific files
+│   └── social_media.db               # SQLite database
+├── main.py                           # Application entry point
+├── requirements.txt                  # Python dependencies
+├── migrate_*.py                      # Database migration scripts
+└── README.md                         # This file
+```
+
+## 🚢 Deployment Guide
+
+### Preparing for Production
+
+1. **Set environment variables**
+   ```bash
+   export SECRET_KEY="your-production-secret-key"
+   export DATABASE_URL="postgresql://user:pass@host/db"  # Optional: Use PostgreSQL
+   export FLASK_ENV="production"
+   ```
+
+2. **Build the frontend**
+   ```bash
+   cd frontend
    npm run build
    ```
 
-#### Access the Application
+3. **Update CORS settings** in `app/config.py`
+   ```python
+   # Add your production domain
+   CORS_ALLOWED_ORIGINS = ['https://your-domain.com']
+   ```
 
-- **Frontend**: Open your browser to `http://localhost:5173`
-- **Backend API**: Available at `http://localhost:5000`
-- Register a new account or use the admin credentials (`admin` / `password123`)
+### Deployment Options
 
-### Configuration Notes
+#### Option 1: Traditional Server (VPS)
 
-- **Database**: SQLite database will be created automatically in the `instance/` directory
-- **File Uploads**: Images are stored in `app/static/uploads/` with unique filenames
-- **Real-time Features**: WebSocket connections handled automatically by Flask-SocketIO
-- **Security**: Passwords are hashed using Werkzeug's secure methods
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   pip install gunicorn  # Production WSGI server
+   ```
 
-### Environment Variables (.env file)
+2. **Run with Gunicorn**
+   ```bash
+   gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:5000 main:app
+   ```
 
-The application supports the following environment variables for configuration:
+3. **Set up Nginx as reverse proxy**
+   ```nginx
+   server {
+       listen 80;
+       server_name your-domain.com;
 
-- **SECRET_KEY**: Flask secret key for session security (default: auto-generated)
-- **FLASK_ENV**: Environment mode (default: `development`)
-- **FLASK_DEBUG**: Debug mode toggle (default: `True`)
-- **DATABASE_URL**: Database connection string (default: `sqlite:///users.db`)
-- **CORS_ALLOWED_ORIGINS**: Comma-separated list of allowed CORS origins
-- **UPLOAD_FOLDER**: Directory for file uploads (default: `app/static/uploads`)
-- **MAX_CONTENT_LENGTH**: Maximum file upload size in bytes (default: 10MB)
+       location / {
+           proxy_pass http://127.0.0.1:5000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+       }
+   }
+   ```
 
-### Default Admin Account
-- **Username**: `admin`
-- **Password**: `password123`
-- Created automatically on first run
+#### Option 2: Heroku
 
-## Usage Guide
+1. **Create `Procfile`**
+   ```
+   web: gunicorn --worker-class eventlet -w 1 main:app
+   ```
 
-### Getting Started
-1. **Register** a new account or login with existing credentials
-2. **Search for users** using the friends management page
-3. **Send friend requests** to connect with other users
-4. **Upload images** from the main posts feed using the upload button
-5. **Start chatting** with friends through the real-time messaging system
+2. **Deploy to Heroku**
+   ```bash
+   heroku create your-app-name
+   heroku addons:create heroku-postgresql:hobby-dev
+   git push heroku main
+   ```
 
-### Key Features
-- **Posts Feed**: View chronological timeline of all user posts
-- **Profile Pages**: Click on usernames to view individual profiles
-- **Friend Management**: Send, accept, reject, and manage friend connections
-- **Real-time Chat**: Instant messaging with online friends
-- **Notifications**: Live updates for friend requests and messages
-- **Image Sharing**: Upload and share images with automatic processing
+3. **Set config vars**
+   ```bash
+   heroku config:set SECRET_KEY="your-secret-key"
+   ```
+
+#### Option 3: Docker
+
+1. **Create `Dockerfile`**
+   ```dockerfile
+   FROM python:3.11-slim
+   WORKDIR /app
+   COPY requirements.txt .
+   RUN pip install -r requirements.txt
+   COPY . .
+   EXPOSE 5000
+   CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "main:app"]
+   ```
+
+2. **Build and run**
+   ```bash
+   docker build -t social-media-platform .
+   docker run -p 5000:5000 social-media-platform
+   ```
+
+### Database Migration
+
+To switch from SQLite to PostgreSQL:
+
+1. **Install psycopg2**
+   ```bash
+   pip install psycopg2-binary
+   ```
+
+2. **Update DATABASE_URL**
+   ```bash
+   export DATABASE_URL="postgresql://username:password@host:port/database"
+   ```
+
+3. **Run migrations**
+   ```bash
+   python main.py  # Will automatically create tables
+   ```
+
+### Security Considerations
+
+- ✅ Use strong `SECRET_KEY` in production
+- ✅ Enable HTTPS with SSL certificates (Let's Encrypt)
+- ✅ Set secure cookie flags (`secure=True, httponly=True, samesite='Strict'`)
+- ✅ Use environment variables for sensitive data
+- ✅ Implement rate limiting (Flask-Limiter)
+- ✅ Add CSRF protection (Flask-WTF)
+- ✅ Sanitize user inputs
+- ✅ Use PostgreSQL in production instead of SQLite
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+**Built with ❤️ using Flask and Svelte**
