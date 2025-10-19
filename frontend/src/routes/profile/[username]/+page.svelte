@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Post from '$lib/components/Post.svelte';
 
 	interface PageData {
+		user_id: number;
 		username: string;
+		display_name?: string;
+		bio?: string;
+		avatar_path?: string;
+		is_online: boolean;
 		posts: Array<{
 			id: number;
 			owner_id: number;
@@ -31,14 +36,14 @@
 
 	onMount(() => {
 		document.addEventListener('postDeleted', handlePostDeleted);
-	});
 
-	onDestroy(() => {
-		document.removeEventListener('postDeleted', handlePostDeleted);
+		return () => {
+			document.removeEventListener('postDeleted', handlePostDeleted);
+		};
 	});
 </script>
 
-<div class="p-4 md:p-8 min-h-screen w-full bg-gray-50 md:ml-20">
+<div class="p-4 md:p-8 min-h-screen w-full bg-gray-200 md:ml-20">
 	<div class="max-w-2xl mx-auto">
 		<!-- Back Button -->
 		<button
@@ -52,14 +57,33 @@
 		</button>
 
 		<!-- Profile Header -->
-		<div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-			<div class="flex items-center gap-4">
-				<div class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-bold text-2xl">
-					{data.username.substring(0, 2).toUpperCase()}
+		<div class="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-soft-md">
+			<div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+				<div class="relative">
+					<div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-bold text-4xl overflow-hidden">
+						{#if data.avatar_path}
+							<img src="http://localhost:5000/static/{data.avatar_path}" alt={data.username} class="w-full h-full object-cover" />
+						{:else}
+							{data.username.substring(0, 2).toUpperCase()}
+						{/if}
+					</div>
+					{#if data.is_online}
+						<div class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
+					{/if}
 				</div>
-				<div>
-					<h1 class="text-2xl font-bold text-gray-900">{data.username}</h1>
-					<p class="text-sm text-gray-500">{posts.length} {posts.length === 1 ? 'post' : 'posts'}</p>
+				<div class="flex-1 text-center md:text-left">
+					<h1 class="text-3xl font-bold text-gray-900 mb-1">{data.display_name || data.username}</h1>
+					<p class="text-base text-gray-500 mb-3">@{data.username}</p>
+					{#if data.bio}
+						<p class="text-sm text-gray-700 mb-3 max-w-md">{data.bio}</p>
+					{/if}
+					<div class="flex items-center gap-4 text-sm text-gray-600 justify-center md:justify-start">
+						<span class="font-semibold">{posts.length} {posts.length === 1 ? 'post' : 'posts'}</span>
+						<span class="flex items-center gap-1">
+							<div class="w-2 h-2 rounded-full {data.is_online ? 'bg-green-500' : 'bg-gray-400'}"></div>
+							{data.is_online ? 'Online' : 'Offline'}
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -68,7 +92,7 @@
 		<div>
 			<h2 class="text-lg font-semibold text-gray-900 mb-4">Posts</h2>
 			{#if posts.length === 0}
-				<div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+				<div class="bg-white rounded-lg border border-gray-200 p-12 text-center shadow-soft-md">
 					<svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
 					</svg>

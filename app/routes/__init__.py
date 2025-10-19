@@ -3,3 +3,4 @@ from .index import bp_index
 from .friends import bp_friends
 from .notifications import bp_notifications
 from .chat import bp_chat
+from .settings import bp_settings

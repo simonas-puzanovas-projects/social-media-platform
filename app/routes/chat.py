@@ -55,6 +55,8 @@ def get_friend_list():
         friends_with_messages.append({
             'id': friend['id'],
             'username': friend['username'],
+            'avatar_path': friend.get('avatar_path'),
+            'display_name': friend.get('display_name'),
             'is_online': friend['is_online'],
             'last_message': last_message or 'No messages yet',
             'timestamp': last_message_time or '',
@@ -86,7 +88,7 @@ def get_messages(friend_id):
         db.session.commit()
 
     # Get all messages in this conversation
-    messages_with_users = db.session.query(Message, User.username)\
+    messages_with_users = db.session.query(Message, User.username, User.avatar_path, User.display_name)\
                                    .join(User, Message.sender_id == User.id)\
                                    .filter(Message.messenger_id == messenger.id)\
                                    .order_by(Message.created_at.asc())\
@@ -94,11 +96,13 @@ def get_messages(friend_id):
 
     messages_data = []
     marked_read_ids = []
-    for message, sender_username in messages_with_users:
+    for message, sender_username, sender_avatar, sender_display_name in messages_with_users:
         messages_data.append({
             "id": message.id,
             "sender_id": message.sender_id,
             "sender": sender_username,
+            "sender_avatar": sender_avatar,
+            "sender_display_name": sender_display_name,
             "content": message.content,
             "image_url": message.image_url,
             "is_read": message.is_read,
@@ -125,6 +129,8 @@ def get_messages(friend_id):
         'friend': {
             'id': friend.id,
             'username': friend.username,
+            'avatar_path': friend.avatar_path,
+            'display_name': friend.display_name,
             'is_online': friend.is_online
         }
     })

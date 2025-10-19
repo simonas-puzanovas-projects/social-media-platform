@@ -169,10 +169,10 @@
 			<!-- Tabs -->
 			<div class="px-6 py-4 border-b border-gray-200">
 				<div class="flex gap-4">
-					<button on:click={() => switchTab('all')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'all' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
+					<button on:click={() => switchTab('all')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'all' ? 'text-sage-700 border-b-2 border-sage-500' : 'text-gray-500 hover:text-gray-700'}">
 						All {$notifications.length > 0 ? `(${$notifications.length})` : ''}
 					</button>
-					<button on:click={() => switchTab('friend_requests')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'friend_requests' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
+					<button on:click={() => switchTab('friend_requests')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'friend_requests' ? 'text-sage-700 border-b-2 border-sage-500' : 'text-gray-500 hover:text-gray-700'}">
 						Friend Requests {$notifications.filter(n => n.type === 'friend_request').length > 0 ? `(${$notifications.filter(n => n.type === 'friend_request').length})` : ''}
 					</button>
 				</div>
@@ -207,7 +207,7 @@
 							{@const isRead = notification.is_read}
 							{@const friendRequest = getFriendRequestInfo(notification)}
 
-							<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors {!isRead ? 'border-blue-200 bg-blue-50/30' : ''}">
+							<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-soft {!isRead ? 'border-sage-200 bg-sage-50/30' : ''}">
 								{#if notification.type === 'friend_request' && friendRequest}
 									<!-- Friend Request Notification -->
 									<div class="flex items-center gap-3">

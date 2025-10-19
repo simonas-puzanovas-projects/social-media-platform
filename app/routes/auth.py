@@ -40,10 +40,17 @@ def get_current_user():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
-    return jsonify({
-        'id': session['user_id'],
-        'username': session['username']
-    })
+    try:
+        user = user_service.get_user(session['user_id'])
+        return jsonify({
+            'id': user.id,
+            'username': user.username,
+            'display_name': user.display_name,
+            'avatar_path': user.avatar_path,
+            'bio': user.bio
+        })
+    except UserServiceError:
+        return jsonify({'error': 'User not found'}), 404
 
 @bp_auth.route('/logout')
 def logout():

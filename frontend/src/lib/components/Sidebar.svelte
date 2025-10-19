@@ -46,12 +46,21 @@
 		</button>
 	</nav>
 
-	<!-- Logout at bottom -->
-	<button on:click={handleLogout} class="{nav_icon_tailwind} mt-auto" title="Logout">
-		<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-		</svg>
-	</button>
+	<!-- Settings and Logout at bottom -->
+	<div class="mt-auto flex flex-col gap-5">
+		<a href="/settings" class={nav_icon_tailwind} title="Settings">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+			</svg>
+		</a>
+
+		<button on:click={handleLogout} class={nav_icon_tailwind} title="Logout">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+			</svg>
+		</button>
+	</div>
 </div>
 
 <!-- Mobile Bottom Navigation -->
@@ -94,6 +103,13 @@
 				</span>
 			{/if}
 		</button>
+
+		<a href="/settings" class={mobile_nav_icon} title="Settings">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+			</svg>
+		</a>
 	</nav>
 </div>
 
@@ -105,8 +121,8 @@
 	import { hasUnreadMessages } from '$lib/stores/messengerStore';
 	import { disconnectSocket } from '$lib/socket';
 
-	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"
-	let mobile_nav_icon = "flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 cursor-pointer min-h-[44px] min-w-[44px] p-2"
+	let nav_icon_tailwind = "w-12 h-12 flex items-center justify-center text-gray-400 hover:text-sage-200 hover:bg-gray-800 rounded-xl transition-all duration-200 cursor-pointer"
+	let mobile_nav_icon = "flex items-center justify-center text-gray-400 hover:text-sage-200 transition-all duration-200 cursor-pointer min-h-[44px] min-w-[44px] p-2"
 
 	async function handleLogout() {
 		try {

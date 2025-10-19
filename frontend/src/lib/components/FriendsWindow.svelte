@@ -7,6 +7,8 @@
 	interface Friend {
 		id: number;
 		username: string;
+		avatar_path?: string;
+		display_name?: string;
 		is_online: boolean;
 		last_seen: string | null;
 	}
@@ -14,6 +16,8 @@
 	interface FriendRequest {
 		id: number;
 		username: string;
+		avatar_path?: string;
+		display_name?: string;
 		friendship_id: number;
 		created_at: string;
 	}
@@ -21,6 +25,8 @@
 	interface SearchResult {
 		id: number;
 		username: string;
+		avatar_path?: string;
+		display_name?: string;
 		status: string;
 	}
 
@@ -194,7 +200,7 @@
 			case 'request_sent':
 				return { text: 'Request Sent', color: 'bg-yellow-100 text-yellow-800' };
 			case 'request_received':
-				return { text: 'Pending', color: 'bg-blue-100 text-blue-800' };
+				return { text: 'Pending', color: 'bg-sage-100 text-sage-800' };
 			default:
 				return null;
 		}
@@ -290,20 +296,20 @@
 
 			<div class="px-6 py-4 border-b border-gray-200">
 				<div class="relative">
-					<input type="text" bind:value={searchQuery} placeholder="Search for users..." disabled={activeTab !== 'friends'} class="w-full px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-all pr-10 disabled:opacity-50 disabled:cursor-not-allowed"/>
+					<input type="text" bind:value={searchQuery} placeholder="Search for users..." disabled={activeTab !== 'friends'} class="w-full px-4 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-sage-300 focus:bg-white transition-all pr-10 disabled:opacity-50 disabled:cursor-not-allowed"/>
 					<svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
 					</svg>
 				</div>
 
 				<div class="flex gap-4 mt-4">
-					<button on:click={() => switchTab('friends')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'friends' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
+					<button on:click={() => switchTab('friends')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'friends' ? 'text-sage-700 border-b-2 border-sage-500' : 'text-gray-500 hover:text-gray-700'}">
 						Friends {friends.length > 0 ? `(${friends.length})` : ''}
 					</button>
-					<button on:click={() => switchTab('requests')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'requests' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
+					<button on:click={() => switchTab('requests')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'requests' ? 'text-sage-700 border-b-2 border-sage-500' : 'text-gray-500 hover:text-gray-700'}">
 						Requests {receivedRequests.length > 0 ? `(${receivedRequests.length})` : ''}
 					</button>
-					<button on:click={() => switchTab('sent')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'sent' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-500 hover:text-gray-700'}">
+					<button on:click={() => switchTab('sent')} class="pb-2 px-1 text-sm font-medium transition-colors {activeTab === 'sent' ? 'text-sage-700 border-b-2 border-sage-500' : 'text-gray-500 hover:text-gray-700'}">
 						Sent {sentRequests.length > 0 ? `(${sentRequests.length})` : ''}
 					</button>
 				</div>
@@ -329,17 +335,21 @@
 						{:else}
 							<div class="space-y-2">
 								{#each searchResults as user (user.id)}
-									<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+									<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-soft">
 										<div class="flex items-center gap-3">
-											<div class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-												{user.username.substring(0, 2).toUpperCase()}
+											<div class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 overflow-hidden">
+												{#if user.avatar_path}
+													<img src="http://localhost:5000/static/{user.avatar_path}" alt={user.username} class="w-full h-full object-cover" />
+												{:else}
+													{user.username.substring(0, 2).toUpperCase()}
+												{/if}
 											</div>
 											<div class="flex-1 min-w-0">
-												<h3 class="font-semibold text-gray-900 truncate text-sm">{user.username}</h3>
+												<h3 class="font-semibold text-gray-900 truncate text-sm">{user.display_name || user.username}</h3>
 											</div>
 											<div class="flex-shrink-0">
 												{#if user.status === 'none'}
-													<button on:click={() => sendFriendRequest(user.id)} class="px-4 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors">Add Friend</button>
+													<button on:click={() => sendFriendRequest(user.id)} class="px-4 py-1.5 bg-sage-500 text-white text-xs font-medium rounded-md hover:bg-sage-600 transition-colors">Add Friend</button>
 												{:else}
 													{@const badge = getStatusBadge(user.status)}
 													{#if badge}
@@ -367,22 +377,26 @@
 					{:else}
 						<div class="space-y-2">
 							{#each friends as friend (friend.id)}
-								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-soft">
 									<div class="flex items-center gap-3">
 										<div class="relative flex-shrink-0">
-											<div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-sm">
-												{friend.username.substring(0, 2).toUpperCase()}
+											<div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-sm overflow-hidden">
+												{#if friend.avatar_path}
+													<img src="http://localhost:5000/static/{friend.avatar_path}" alt={friend.username} class="w-full h-full object-cover" />
+												{:else}
+													{friend.username.substring(0, 2).toUpperCase()}
+												{/if}
 											</div>
 											{#if friend.is_online}
 												<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
 											{/if}
 										</div>
 										<div class="flex-1 min-w-0">
-											<h3 class="font-semibold text-gray-900 truncate text-sm">{friend.username}</h3>
+											<h3 class="font-semibold text-gray-900 truncate text-sm">{friend.display_name || friend.username}</h3>
 											<p class="text-xs text-gray-500">{friend.is_online ? 'Online' : friend.last_seen ? `Last seen ${formatDate(friend.last_seen)}` : 'Offline'}</p>
 										</div>
 										<div class="flex items-center gap-2 flex-shrink-0">
-											<a href="/messenger?user={friend.id}" class="px-4 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors">Message</a>
+											<a href="/messenger?user={friend.id}" class="px-4 py-1.5 bg-sage-500 text-white text-xs font-medium rounded-md hover:bg-sage-600 transition-colors">Message</a>
 											<button on:click={() => removeFriend(friend.id)} class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors" title="Remove Friend">
 												<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -408,13 +422,17 @@
 					{:else}
 						<div class="space-y-2">
 							{#each receivedRequests as request (request.friendship_id)}
-								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-soft">
 									<div class="flex items-center gap-3">
-										<div class="w-11 h-11 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-											{request.username.substring(0, 2).toUpperCase()}
+										<div class="w-11 h-11 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 overflow-hidden">
+											{#if request.avatar_path}
+												<img src="http://localhost:5000/static/{request.avatar_path}" alt={request.username} class="w-full h-full object-cover" />
+											{:else}
+												{request.username.substring(0, 2).toUpperCase()}
+											{/if}
 										</div>
 										<div class="flex-1 min-w-0">
-											<h3 class="font-semibold text-gray-900 text-sm">{request.username}</h3>
+											<h3 class="font-semibold text-gray-900 text-sm">{request.display_name || request.username}</h3>
 											<p class="text-xs text-gray-500">{formatDate(request.created_at)}</p>
 										</div>
 										<div class="flex gap-2 flex-shrink-0">
@@ -440,13 +458,17 @@
 					{:else}
 						<div class="space-y-2">
 							{#each sentRequests as request (request.friendship_id)}
-								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+								<div class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-soft">
 									<div class="flex items-center gap-3">
-										<div class="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-											{request.username.substring(0, 2).toUpperCase()}
+										<div class="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 overflow-hidden">
+											{#if request.avatar_path}
+												<img src="http://localhost:5000/static/{request.avatar_path}" alt={request.username} class="w-full h-full object-cover" />
+											{:else}
+												{request.username.substring(0, 2).toUpperCase()}
+											{/if}
 										</div>
 										<div class="flex-1 min-w-0">
-											<h3 class="font-semibold text-gray-900 text-sm">{request.username}</h3>
+											<h3 class="font-semibold text-gray-900 text-sm">{request.display_name || request.username}</h3>
 											<p class="text-xs text-gray-500">Sent {formatDate(request.created_at)}</p>
 										</div>
 										<button on:click={() => cancelFriendRequest(request.friendship_id)} class="px-4 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-200 transition-colors flex-shrink-0">Cancel</button>

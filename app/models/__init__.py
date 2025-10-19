@@ -6,6 +6,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    display_name = db.Column(db.String(100), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    avatar_path = db.Column(db.String(255), nullable=True)
     is_online = db.Column(db.Boolean, default=False)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -25,6 +28,9 @@ class User(db.Model):
         return {
             'id': self.id,
             'username': self.username,
+            'display_name': self.display_name,
+            'bio': self.bio,
+            'avatar_path': self.avatar_path,
             'is_online': self.is_online,
             'last_seen': self.last_seen.isoformat()
         }
@@ -83,6 +89,8 @@ class PostComment(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'username': self.user.username,
+            'user_avatar': self.user.avatar_path,
+            'user_display_name': self.user.display_name,
             'post_id': self.post_id,
             'parent_id': self.parent_id,
             'content': self.content,
@@ -125,6 +133,8 @@ class Post(db.Model):
             'id': self.id,
             'owner_id': self.owner,
             'owner_name': self.owner_user.username,
+            'owner_display_name': self.owner_user.display_name,
+            'owner_avatar': self.owner_user.avatar_path,
             'image_path': self.image_path,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),

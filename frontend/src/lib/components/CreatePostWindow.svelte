@@ -199,7 +199,7 @@
 							<button
 								on:click={handleUpload}
 								disabled={loading}
-								class="flex-1 px-4 py-2.5 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								class="flex-1 px-4 py-2.5 bg-sage-500 text-white font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								{loading ? 'Uploading...' : 'Post'}
 							</button>

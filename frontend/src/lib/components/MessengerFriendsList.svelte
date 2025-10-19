@@ -12,7 +12,8 @@
 	interface Contact {
 		id: number;
 		name: string;
-		avatar: string;
+		avatar: string | null;
+		display_name?: string;
 		lastMessage: string;
 		timestamp: string;
 		isPinned: boolean;
@@ -80,7 +81,8 @@
 			contacts = data.map((friend: any) => ({
 				id: friend.id,
 				name: friend.username,
-				avatar: friend.avatar || '',
+				display_name: friend.display_name,
+				avatar: friend.avatar_path || null,
 				lastMessage: friend.last_message,
 				timestamp: friend.timestamp,
 				isPinned: false, // You can implement pinning logic later
@@ -212,7 +214,7 @@
 				type="text"
 				bind:value={searchQuery}
 				placeholder="Search"
-				class="w-full px-3.5 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-all pr-9"
+				class="w-full px-3.5 py-2 bg-gray-50 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-sage-300 focus:bg-white transition-all pr-9"
 			/>
 			<svg
 				class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -251,13 +253,17 @@
 					{#each filteredPinned as contact, index (contact.id)}
 						<button
 							on:click={() => selectContact(contact.id)}
-							class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all duration-200 transform hover:scale-[1.01] {selectedContactId === contact.id ? 'bg-blue-50 border border-blue-100 shadow-sm' : ''}"
+							class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sage-50 hover:shadow-soft transition-all duration-200 transform hover:scale-[1.01] {selectedContactId === contact.id ? 'bg-sage-50 border border-sage-200 shadow-soft' : ''}"
 							in:fly="{{ y: 20, duration: 300, delay: index * 50, easing: quintOut }}"
 						>
 							<!-- Avatar with online status -->
 							<div class="relative flex-shrink-0">
-								<div class="w-11 h-11 rounded-full bg-gradient-to-br {contact.avatarColor || 'from-purple-400 to-pink-400'} flex items-center justify-center text-white font-medium text-sm transition-transform duration-200 group-hover:scale-105">
-									{contact.name.split(' ').map(n => n[0]).join('')}
+								<div class="w-11 h-11 rounded-full bg-gradient-to-br {contact.avatarColor || 'from-purple-400 to-pink-400'} flex items-center justify-center text-white font-medium text-sm transition-transform duration-200 group-hover:scale-105 overflow-hidden">
+									{#if contact.avatar}
+										<img src="http://localhost:5000/static/{contact.avatar}" alt={contact.name} class="w-full h-full object-cover" />
+									{:else}
+										{contact.name.split(' ').map(n => n[0]).join('')}
+									{/if}
 								</div>
 								{#if contact.isOnline}
 									<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
@@ -268,14 +274,14 @@
 							<div class="flex-1 min-w-0 text-left">
 								<div class="flex items-center justify-between mb-0.5">
 									<h3 class="font-semibold text-gray-900 text-[13px] truncate">
-										{contact.name}
+										{contact.display_name || contact.name}
 									</h3>
 									<div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
 										<span class="text-[11px] text-gray-400 transition-colors duration-200">
 											{contact.timestamp}
 										</span>
 										{#if contact.unreadCount > 0}
-											<span class="bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center animate-pulse" in:fade={{ duration: 200 }}>
+											<span class="bg-sage-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center animate-pulse" in:fade={{ duration: 200 }}>
 												{contact.unreadCount}
 											</span>
 										{/if}
@@ -301,13 +307,17 @@
 					{#each filteredAll as contact, index (contact.id)}
 						<button
 							on:click={() => selectContact(contact.id)}
-							class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 hover:shadow-sm transition-all duration-200 transform hover:scale-[1.01] {selectedContactId === contact.id ? 'bg-blue-50 border border-blue-100 shadow-sm' : ''}"
+							class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sage-50 hover:shadow-soft transition-all duration-200 transform hover:scale-[1.01] {selectedContactId === contact.id ? 'bg-sage-50 border border-sage-200 shadow-soft' : ''}"
 							in:fly="{{ y: 20, duration: 300, delay: index * 50, easing: quintOut }}"
 						>
 							<!-- Avatar with online status -->
 							<div class="relative flex-shrink-0">
-								<div class="w-11 h-11 rounded-full bg-gradient-to-br {contact.avatarColor || 'from-blue-400 to-indigo-400'} flex items-center justify-center text-white font-medium text-sm transition-transform duration-200 group-hover:scale-105">
-									{contact.name.split(' ').map(n => n[0]).join('')}
+								<div class="w-11 h-11 rounded-full bg-gradient-to-br {contact.avatarColor || 'from-blue-400 to-indigo-400'} flex items-center justify-center text-white font-medium text-sm transition-transform duration-200 group-hover:scale-105 overflow-hidden">
+									{#if contact.avatar}
+										<img src="http://localhost:5000/static/{contact.avatar}" alt={contact.name} class="w-full h-full object-cover" />
+									{:else}
+										{contact.name.split(' ').map(n => n[0]).join('')}
+									{/if}
 								</div>
 								{#if contact.isOnline}
 									<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
@@ -318,14 +328,14 @@
 							<div class="flex-1 min-w-0 text-left">
 								<div class="flex items-center justify-between mb-0.5">
 									<h3 class="font-semibold text-gray-900 text-[13px] truncate">
-										{contact.name}
+										{contact.display_name || contact.name}
 									</h3>
 									<div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
 										<span class="text-[11px] text-gray-400 transition-colors duration-200">
 											{contact.timestamp}
 										</span>
 										{#if contact.unreadCount > 0}
-											<span class="bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center animate-pulse" in:fade={{ duration: 200 }}>
+											<span class="bg-sage-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center animate-pulse" in:fade={{ duration: 200 }}>
 												{contact.unreadCount}
 											</span>
 										{/if}

@@ -7,6 +7,8 @@
 	interface PostProps {
 		id: number;
 		owner_name: string;
+		owner_display_name?: string;
+		owner_avatar?: string;
 		image_path: string;
 		created_at: string;
 		likes: Array<{ user_id: number; username: string }>;
@@ -20,6 +22,8 @@
 		id: number;
 		user_id: number;
 		username: string;
+		user_avatar?: string;
+		user_display_name?: string;
 		content: string;
 		created_at: string;
 		parent_id: number | null;
@@ -415,15 +419,19 @@
 	});
 </script>
 
-<article class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+<article class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-soft-md">
 	<!-- Post Header -->
 	<div class="p-4 flex items-center justify-between">
 		<a href="/profile/{post.owner_name}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-			<div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-				<span class="text-sm font-medium text-gray-600">{post.owner_name[0].toUpperCase()}</span>
+			<div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+				{#if post.owner_avatar}
+					<img src="http://localhost:5000/static/{post.owner_avatar}" alt={post.owner_name} class="w-full h-full object-cover" />
+				{:else}
+					<span class="text-sm font-medium text-gray-600">{post.owner_name[0].toUpperCase()}</span>
+				{/if}
 			</div>
 			<div>
-				<h3 class="font-medium text-gray-900">{post.owner_name}</h3>
+				<h3 class="font-medium text-gray-900">{post.owner_display_name || post.owner_name}</h3>
 				<p class="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString()}</p>
 			</div>
 		</a>
@@ -473,7 +481,7 @@
 			</button>
 			<button
 				onclick={toggleComments}
-				class="flex items-center gap-2 text-gray-700 hover:text-blue-500 transition-colors"
+				class="flex items-center gap-2 text-gray-700 hover:text-sage-500 transition-colors"
 			>
 				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -505,12 +513,12 @@
 						bind:value={newComment}
 						placeholder="Write a comment..."
 						onkeydown={(e) => e.key === 'Enter' && postComment()}
-						class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
 					/>
 					<button
 						onclick={postComment}
 						disabled={postingComment || !newComment.trim()}
-						class="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						class="px-4 py-2 bg-sage-500 text-white text-sm font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{postingComment ? '...' : 'Post'}
 					</button>
@@ -528,26 +536,30 @@
 						<div class="bg-white rounded-lg p-3 comment-fade-in" style="animation-delay: {commentsLoaded ? 0 : index * 50}ms;">
 							<!-- Comment -->
 							<div class="flex gap-2">
-								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
-									{comment.username[0].toUpperCase()}
+								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0 overflow-hidden">
+									{#if comment.user_avatar}
+										<img src="http://localhost:5000/static/{comment.user_avatar}" alt={comment.username} class="w-full h-full object-cover" />
+									{:else}
+										{comment.username[0].toUpperCase()}
+									{/if}
 								</div>
 								<div class="flex-1 min-w-0">
 									<div class="flex items-center gap-2 mb-1">
-										<span class="font-semibold text-sm text-gray-900">{comment.username}</span>
+										<span class="font-semibold text-sm text-gray-900">{comment.user_display_name || comment.username}</span>
 										<span class="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
 									</div>
 									<p class="text-sm text-gray-700 mb-2">{comment.content}</p>
 									<div class="flex items-center gap-3">
 										<button
 											onclick={() => startReply(comment.id)}
-											class="text-xs text-gray-500 hover:text-blue-500 font-medium"
+											class="text-xs text-gray-500 hover:text-sage-500 font-medium"
 										>
 											Reply
 										</button>
 										{#if comment.replies.length > 0}
 											<button
 												onclick={() => toggleReplies(comment.id)}
-												class="text-xs text-gray-500 hover:text-blue-500 font-medium flex items-center gap-1"
+												class="text-xs text-gray-500 hover:text-sage-500 font-medium flex items-center gap-1"
 											>
 												<span>{expandedReplies.has(comment.id) ? '▼' : '▶'}</span>
 												<span>{comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}</span>
@@ -571,12 +583,12 @@
 												bind:value={replyContent}
 												placeholder="Write a reply..."
 												onkeydown={(e) => e.key === 'Enter' && postReply(comment.id)}
-												class="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+												class="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-sage-400"
 											/>
 											<button
 												onclick={() => postReply(comment.id)}
 												disabled={postingComment || !replyContent.trim()}
-												class="px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+												class="px-3 py-1.5 bg-sage-500 text-white text-xs font-medium rounded hover:bg-sage-600 transition-colors disabled:opacity-50"
 											>
 												Reply
 											</button>
@@ -594,12 +606,16 @@
 										<div class="mt-3 space-y-3 pl-4 border-l-2 border-gray-200">
 											{#each comment.replies as reply, replyIndex (reply.id)}
 												<div class="flex gap-2 reply-fade-in" style="animation-delay: {replyIndex * 40}ms;">
-													<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
-														{reply.username[0].toUpperCase()}
+													<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0 overflow-hidden">
+														{#if reply.user_avatar}
+															<img src="http://localhost:5000/static/{reply.user_avatar}" alt={reply.username} class="w-full h-full object-cover" />
+														{:else}
+															{reply.username[0].toUpperCase()}
+														{/if}
 													</div>
 													<div class="flex-1 min-w-0">
 														<div class="flex items-center gap-2 mb-1">
-															<span class="font-semibold text-xs text-gray-900">{reply.username}</span>
+															<span class="font-semibold text-xs text-gray-900">{reply.user_display_name || reply.username}</span>
 															<span class="text-xs text-gray-500">{formatDate(reply.created_at)}</span>
 														</div>
 														<p class="text-xs text-gray-700 mb-1">{reply.content}</p>

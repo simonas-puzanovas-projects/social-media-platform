@@ -42,7 +42,12 @@ def profile(username):
 
     return jsonify({
         'success': True,
+        'user_id': user.id,
         'username': username,
+        'display_name': user.display_name,
+        'bio': user.bio,
+        'avatar_path': user.avatar_path,
+        'is_online': user.is_online,
         'posts': posts,
         'current_user_id': session.get('user_id'),
         'current_username': current_user.username

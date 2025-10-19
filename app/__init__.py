@@ -40,12 +40,14 @@ def app_init():
     from .routes import bp_friends
     from .routes import bp_notifications
     from .routes import bp_chat
+    from .routes import bp_settings
 
     app.register_blueprint(bp_index)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_friends)
     app.register_blueprint(bp_notifications)
     app.register_blueprint(bp_chat)
+    app.register_blueprint(bp_settings)
 
     # Register error handlers and logging
     from .error_handlers import register_error_handlers, setup_logging

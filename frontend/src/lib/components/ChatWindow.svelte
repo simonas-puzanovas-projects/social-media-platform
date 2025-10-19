@@ -12,6 +12,8 @@
 		id: number;
 		sender_id: number;
 		sender: string;
+		sender_avatar?: string;
+		sender_display_name?: string;
 		content: string;
 		image_url?: string;
 		is_read: boolean;
@@ -21,6 +23,8 @@
 	interface Friend {
 		id: number;
 		username: string;
+		avatar_path?: string;
+		display_name?: string;
 		is_online: boolean;
 	}
 
@@ -261,7 +265,7 @@
 </script>
 
 {#if selectedFriendId && friend}
-	<div class="flex flex-col h-screen bg-white" in:fade="{{ duration: 400 }}">
+	<div class="flex flex-col h-screen bg-white max-w-4xl mx-auto shadow-soft-lg" in:fade="{{ duration: 400 }}">
 		<!-- Chat Header -->
 		<div class="px-4 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white" in:fly="{{ x: 20, duration: 400, delay: 100 }}">
 			<div class="flex items-center gap-3">
@@ -278,29 +282,21 @@
 					</button>
 				{/if}
 				<div class="relative">
-					<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-sm">
-						{friend.username.split(' ').map(n => n[0]).join('')}
+					<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-medium text-sm overflow-hidden">
+						{#if friend.avatar_path}
+							<img src="http://localhost:5000/static/{friend.avatar_path}" alt={friend.username} class="w-full h-full object-cover" />
+						{:else}
+							{friend.username.split(' ').map(n => n[0]).join('')}
+						{/if}
 					</div>
 					{#if friend.is_online}
 						<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
 					{/if}
 				</div>
 				<div>
-					<h2 class="font-semibold text-gray-900">{friend.username}</h2>
+					<h2 class="font-semibold text-gray-900">{friend.display_name || friend.username}</h2>
 					<p class="text-xs text-gray-500">{friend.is_online ? 'Online' : 'Offline'}</p>
 				</div>
-			</div>
-			<div class="flex items-center gap-2">
-				<button aria-label="Voice chat" class="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110">
-					<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-					</svg>
-				</button>
-				<button aria-label="Video chat" class="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110">
-					<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-					</svg>
-				</button>
 			</div>
 		</div>
 
@@ -329,11 +325,15 @@
 							in:fly="{{ y: 20, duration: 300, easing: quintOut }}"
 						>
 							<div class="flex gap-2 max-w-[85%] md:max-w-[70%] {message.sender_id === currentUserId ? 'flex-row' : 'flex-row-reverse'}">
-								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0 transition-transform duration-200 hover:scale-110">
-									{message.sender[0].toUpperCase()}
+								<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-white font-medium text-xs flex-shrink-0 transition-transform duration-200 hover:scale-110 overflow-hidden">
+									{#if message.sender_avatar}
+										<img src="http://localhost:5000/static/{message.sender_avatar}" alt={message.sender} class="w-full h-full object-cover" />
+									{:else}
+										{message.sender[0].toUpperCase()}
+									{/if}
 								</div>
 								<div class="flex flex-col {message.sender_id === currentUserId ? 'items-start' : 'items-end'}">
-									<div class="rounded-2xl {message.sender_id === currentUserId ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 border border-gray-200'} {message.image_url ? 'p-2' : 'px-4 py-2'} transition-all duration-200 hover:shadow-md">
+									<div class="rounded-2xl {message.sender_id === currentUserId ? 'bg-sage-500 text-white' : 'bg-white text-gray-900 border border-gray-100'} {message.image_url ? 'p-2' : 'px-4 py-2'} transition-all duration-200 hover:shadow-soft-md">
 										{#if message.image_url}
 											<img
 												src={`http://localhost:5000/static/${message.image_url}`}
@@ -351,7 +351,7 @@
 									<div class="flex items-center gap-1 mt-1 px-1">
 										<span class="text-xs text-gray-400">{message.created_at}</span>
 										{#if message.sender_id === currentUserId && message.is_read}
-											<svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<svg class="w-3 h-3 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
 											</svg>
 										{/if}
@@ -396,7 +396,7 @@
 				<button
 					on:click={openImagePicker}
 					aria-label="Add image"
-					class="p-2 text-gray-500 hover:text-blue-500 hover:scale-110 transition-all duration-200"
+					class="p-2 text-gray-500 hover:text-sage-500 hover:scale-110 transition-all duration-200"
 					disabled={uploading}
 				>
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,14 +411,14 @@
 						on:keydown={handleKeydown}
 						placeholder="Type a message..."
 						disabled={uploading}
-						class="w-full px-4 py-3 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all disabled:opacity-50"
+						class="w-full px-4 py-3 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sage-400 focus:bg-white transition-all disabled:opacity-50"
 					/>
 				</div>
 				<button
 					aria-label="Send message"
 					on:click={sendMessage}
 					disabled={(!newMessage.trim() && !selectedImage) || uploading}
-					class="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+					class="p-3 bg-sage-500 text-white rounded-full hover:bg-sage-600 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
 				>
 					{#if uploading}
 						<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
