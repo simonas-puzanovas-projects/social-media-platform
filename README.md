@@ -63,7 +63,7 @@ A full-stack real-time social media platform built with Flask and Svelte, featur
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/simonas-puzanovas-projects/social-media-platform.git
    cd social-media-platform
    ```
 
