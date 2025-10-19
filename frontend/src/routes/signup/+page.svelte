@@ -14,8 +14,8 @@
 
 </script>
 
-{#if !form?.success}
-  <TmpNotify message={form?.message}></TmpNotify>
+{#if !form?.success && form?.message}
+  <TmpNotify message={form?.message} type="error" position="top-center"></TmpNotify>
 {/if}
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">

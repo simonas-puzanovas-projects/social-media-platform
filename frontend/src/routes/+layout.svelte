@@ -22,7 +22,7 @@
 			{@render children()}
 		</main>
 	{:else}
-		<main class="flex bg-green-50 pb-16 md:pb-0">
+		<main class="flex bg-gray-200 pb-16 md:pb-0">
 			<Sidebar/>
 			{@render children()}
 		</main>

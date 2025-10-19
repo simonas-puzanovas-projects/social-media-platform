@@ -7,16 +7,23 @@ bp_auth = Blueprint("bp_auth", __name__)
 
 @bp_auth.route('/api/signin', methods=['POST'])
 def login():
+    # Safe form field extraction
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
 
-    username = request.form['username']
-    password = request.form['password']
+    # Validate required fields
+    if not username:
+        return jsonify({'success': False, 'message': 'Username is required.'})
+
+    if not password:
+        return jsonify({'success': False, 'message': 'Password is required.'})
 
     try:
         user = user_service.authenticate_user(username, password)
 
     except UserServiceError as error:
         return jsonify({'success': False, 'message': str(error)})
-    
+
     session['user_id'] = user.id
     session['username'] = user.username
 
@@ -25,14 +32,23 @@ def login():
 
 @bp_auth.route('/api/signup', methods=['POST'])
 def register():
-    username = request.form['username']
-    password = request.form['password']
+    # Safe form field extraction
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
 
-    try: user_service.create_user(username, password)
+    # Validate required fields
+    if not username:
+        return jsonify({'success': False, 'message': 'Username is required.'})
+
+    if not password:
+        return jsonify({'success': False, 'message': 'Password is required.'})
+
+    try:
+        user_service.create_user(username, password)
 
     except UserServiceError as error:
         return jsonify({'success': False, 'message': str(error)})
-    
+
     return jsonify({"success": True})
 
 @bp_auth.route('/api/current_user')

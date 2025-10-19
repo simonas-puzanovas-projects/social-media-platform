@@ -111,7 +111,7 @@
 	});
 </script>
 
-<div class="p-4 md:p-8 min-h-screen w-full bg-gray-200 md:ml-20">
+<div class="p-4 md:p-8 min-h-screen w-full md:ml-20">
 	<div class="max-w-2xl mx-auto">
 		<h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Feed</h1>
 

@@ -38,8 +38,8 @@ class User(db.Model):
 
 class Friendship(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    requester_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    requested_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    requester_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    requested_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -48,15 +48,15 @@ class Friendship(db.Model):
 
 class Messenger(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    second_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    messages = db.relationship("Message", backref='messenger')
+    first_user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    second_user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    messages = db.relationship("Message", backref='messenger', cascade='all, delete-orphan')
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    messenger_id = db.Column(db.Integer, db.ForeignKey('messenger.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    messenger_id = db.Column(db.Integer, db.ForeignKey('messenger.id', ondelete='CASCADE'))
     content = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.String(255), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
@@ -64,18 +64,18 @@ class Message(db.Model):
 
 class PostLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
 
 class PostComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('post_comment.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('post_comment.id', ondelete='CASCADE'), nullable=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+    user = db.relationship('User', backref=db.backref('comments', lazy=True, cascade='all, delete-orphan'))
     parent_comment = db.relationship("PostComment", backref=db.backref('replies', cascade='all, delete-orphan'), remote_side=[id])
 
     @property
@@ -101,11 +101,11 @@ class PostComment(db.Model):
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    owner = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    owner = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     image_path = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    owner_user = db.relationship('User', backref=db.backref('posts', lazy=True))
+    owner_user = db.relationship('User', backref=db.backref('posts', lazy=True, cascade='all, delete-orphan'))
     likes = db.relationship("PostLike", backref='post', cascade='all, delete-orphan')
     comments = db.relationship("PostComment", backref='post', cascade='all, delete-orphan')
 
@@ -144,7 +144,7 @@ class Post(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     message = db.Column(db.String(255), nullable=False)
     data = db.Column(db.Text)

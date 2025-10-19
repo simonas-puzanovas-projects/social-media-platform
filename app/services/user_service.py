@@ -1,5 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..models import User, Friendship
+import re
 
 class UserServiceError(Exception): pass
 
@@ -7,13 +8,37 @@ class UserService:
     def __init__(self, db):
         self.db = db
 
+    def _validate_username(self, username):
+        """Validate username format and length"""
+        if not username or len(username) < 3:
+            raise UserServiceError("Username must be at least 3 characters long.")
+
+        if len(username) > 20:
+            raise UserServiceError("Username must not exceed 20 characters.")
+
+        # Allow only alphanumeric characters and underscores
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            raise UserServiceError("Username can only contain letters, numbers, and underscores.")
+
+    def _validate_password(self, password):
+        """Validate password strength"""
+        if not password or len(password) < 6:
+            raise UserServiceError("Password must be at least 6 characters long.")
+
+        if len(password) > 128:
+            raise UserServiceError("Password must not exceed 128 characters.")
+
     def create_user(self, username, password):
+        # Validate inputs
+        self._validate_username(username)
+        self._validate_password(password)
+
         if User.query.filter_by(username=username).first():
-            raise UserServiceError("User already exists.")
-        
+            raise UserServiceError("Username is already taken.")
+
         password_hash = generate_password_hash(password)
         new_user = User(username=username, password_hash=password_hash)
-        
+
         self.db.session.add(new_user)
         self.db.session.commit()
 

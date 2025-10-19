@@ -221,6 +221,7 @@
 						id: data.id,
 						sender_id: data.sender_id,
 						sender: data.sender,
+						sender_avatar: data.sender_avatar,
 						content: data.content,
 						image_url: data.image_url,
 						is_read: data.is_read,

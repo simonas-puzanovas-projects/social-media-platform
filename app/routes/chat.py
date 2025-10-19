@@ -183,6 +183,7 @@ def send_message_api():
         'content': new_message.content,
         'image_url': new_message.image_url,
         'sender': current_user.username,
+        'sender_avatar': current_user.avatar_path,
         'sender_id': current_user_id,
         'chat_id': messenger.id,
         'is_read': new_message.is_read,

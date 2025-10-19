@@ -1,8 +1,8 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
-  
-  let { message = 'Notification message', type = 'success', duration = 4000 } = $props();
-  
+
+  let { message = 'Notification message', type = 'success', duration = 4000, position = 'top-right' } = $props();
+
   let visible = $state(true);
   let timeoutId: ReturnType<typeof setTimeout>;
   
@@ -36,11 +36,20 @@
       default: return 'bg-green-100 border-green-300 text-green-800';
     }
   }
+
+  function getPositionStyles() {
+    switch(position) {
+      case 'top-center': return 'top-5 left-1/2 -translate-x-1/2';
+      case 'top-right': return 'top-5 right-5';
+      case 'top-left': return 'top-5 left-5';
+      default: return 'top-5 right-5';
+    }
+  }
 </script>
 
 {#if visible}
-  <div 
-    class="fixed top-5 right-5 min-w-[300px] max-w-[400px] px-5 py-4 rounded-xl flex items-center gap-3 shadow-lg z-[9999] border {getStyles()}"
+  <div
+    class="fixed min-w-[300px] max-w-[400px] px-5 py-4 rounded-xl flex items-center gap-3 shadow-lg z-[9999] border {getStyles()} {getPositionStyles()}"
     transition:fly={{ y: -20, duration: 300 }}
   >
     <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-black bg-opacity-10 text-lg font-bold">

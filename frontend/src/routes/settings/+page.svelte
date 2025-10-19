@@ -198,11 +198,12 @@
 	}
 </script>
 
-<div class="flex h-screen bg-gray-50">
+<div class="flex h-screen">
 	<Sidebar />
 
-	<main class="flex-1 overflow-y-auto md:ml-20">
-		<div class="max-w-4xl mx-auto px-4 py-8 pb-20 md:pb-8">
+	<main class="flex-1 overflow-y-auto">
+		<div class="fixed inset-0 flex items-center justify-center pointer-events-none md:pb-0 pb-16">
+			<div class="w-full max-w-2xl px-4 py-8 pointer-events-auto overflow-y-auto max-h-screen bg-white rounded-lg shadow-lg">
 			<h1 class="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
 
 			<!-- Profile Section -->
@@ -222,7 +223,7 @@
 
 				<!-- Avatar Upload -->
 				<div class="mb-6">
-					<label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+					<label for="avatarInput" class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
 					<div class="flex items-center gap-4">
 						<div class="w-24 h-24 rounded-full bg-gray-200 overflow-hidden">
 							{#if avatarPreview}
@@ -237,22 +238,23 @@
 						</div>
 						<div class="flex-1">
 							<input
+								id="avatarInput"
 								type="file"
 								bind:this={avatarInput}
-								on:change={handleAvatarSelect}
+								onchange={handleAvatarSelect}
 								accept="image/jpeg,image/png,image/gif,image/webp"
 								class="hidden"
 							/>
 							<div class="flex gap-2">
 								<button
-									on:click={() => avatarInput.click()}
+									onclick={() => avatarInput.click()}
 									class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors"
 								>
 									Choose Image
 								</button>
 								{#if selectedAvatar}
 									<button
-										on:click={uploadAvatar}
+										onclick={uploadAvatar}
 										disabled={avatarLoading}
 										class="px-4 py-2 bg-sage-500 text-white text-sm font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50"
 									>
@@ -295,7 +297,7 @@
 				</div>
 
 				<button
-					on:click={updateProfile}
+					onclick={updateProfile}
 					disabled={profileLoading}
 					class="px-6 py-2 bg-sage-500 text-white font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50"
 				>
@@ -349,7 +351,7 @@
 				</div>
 
 				<button
-					on:click={changePassword}
+					onclick={changePassword}
 					disabled={passwordLoading || !oldPassword || !newPassword || !confirmPassword}
 					class="px-6 py-2 bg-sage-500 text-white font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
@@ -370,7 +372,7 @@
 
 				{#if !showDeleteConfirm}
 					<button
-						on:click={() => showDeleteConfirm = true}
+						onclick={() => showDeleteConfirm = true}
 						class="px-6 py-2 bg-red-500 text-white font-medium rounded-md hover:bg-red-600 transition-colors"
 					>
 						Delete Account
@@ -389,14 +391,14 @@
 						</div>
 						<div class="flex gap-2">
 							<button
-								on:click={deleteAccount}
+								onclick={deleteAccount}
 								disabled={deleteLoading || !deletePassword}
 								class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
 							>
 								{deleteLoading ? 'Deleting...' : 'Yes, Delete My Account'}
 							</button>
 							<button
-								on:click={() => { showDeleteConfirm = false; deletePassword = ''; deleteError = ''; }}
+								onclick={() => { showDeleteConfirm = false; deletePassword = ''; deleteError = ''; }}
 								disabled={deleteLoading}
 								class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50"
 							>
@@ -406,6 +408,7 @@
 					</div>
 				{/if}
 			</div>
+		</div>
 		</div>
 	</main>
 </div>

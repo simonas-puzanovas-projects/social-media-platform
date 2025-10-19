@@ -43,7 +43,7 @@
 	});
 </script>
 
-<div class="p-4 md:p-8 min-h-screen w-full bg-gray-200 md:ml-20">
+<div class="p-4 md:p-8 min-h-screen w-full md:ml-20">
 	<div class="max-w-2xl mx-auto">
 		<!-- Back Button -->
 		<button

@@ -19,9 +19,12 @@ export const actions = {
       body: data
     });
 
-    if (response.ok){
-      redirect(302, "/signin")
+    const response_data = await response.json();
+
+    if (response_data.success){
+      redirect(302, "/settings")
     }
-    
+
+    return { success: response_data.success, message: response_data.message };
   }
 } satisfies Actions;

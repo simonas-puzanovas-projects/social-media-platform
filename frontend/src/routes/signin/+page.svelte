@@ -1,15 +1,21 @@
 <script>
+  import TmpNotify from '$lib/components/TmpNotify.svelte';
+
+  let {data, form} = $props();
+
   let username = $state('');
   let password = $state('');
   let isPressed = $state(false);
-
-  let props = $props();
 
   function handleSubmit() {
     console.log('Login submitted:', { username, password });
     // Add your login logic here
   }
 </script>
+
+{#if !form?.success && form?.message}
+  <TmpNotify message={form?.message} type="error" position="top-center"></TmpNotify>
+{/if}
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
   <div class="w-full max-w-md">
