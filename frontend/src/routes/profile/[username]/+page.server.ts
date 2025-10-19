@@ -20,7 +20,12 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		const data = await response.json();
 
 		return {
+			user_id: data.user_id,
 			username: data.username,
+			display_name: data.display_name,
+			bio: data.bio,
+			avatar_path: data.avatar_path,
+			is_online: data.is_online,
 			posts: data.posts || [],
 			currentUserId: data.current_user_id,
 			currentUsername: data.current_username
