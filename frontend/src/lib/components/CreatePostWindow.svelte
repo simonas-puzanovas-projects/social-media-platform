@@ -6,6 +6,7 @@
 
 	let selectedFile: File | null = null;
 	let previewUrl: string | null = null;
+	let description = '';
 	let loading = false;
 	let error = '';
 	let successMessage = '';
@@ -51,14 +52,15 @@
 	function clearSelection() {
 		selectedFile = null;
 		previewUrl = null;
+		description = '';
 		error = '';
 		successMessage = '';
 		if (fileInput) fileInput.value = '';
 	}
 
 	async function handleUpload() {
-		if (!selectedFile) {
-			error = 'Please select an image first';
+		if (!selectedFile && !description.trim()) {
+			error = 'Please add an image or write something';
 			return;
 		}
 
@@ -67,7 +69,12 @@
 			error = '';
 
 			const formData = new FormData();
-			formData.append('image', selectedFile);
+			if (selectedFile) {
+				formData.append('image', selectedFile);
+			}
+			if (description.trim()) {
+				formData.append('description', description.trim());
+			}
 
 			const response = await fetch('http://localhost:5000/upload_image', {
 				method: 'POST',
@@ -158,31 +165,50 @@
 
 			<!-- Content -->
 			<div class="flex-1 overflow-y-auto px-6 py-6 pb-20 md:pb-6">
-				{#if !previewUrl}
-					<!-- Upload Area -->
-					<div
-						class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 transition-colors cursor-pointer"
-						on:drop={handleDrop}
-						on:dragover={handleDragOver}
-						on:click={() => fileInput.click()}
-					>
-						<svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-						</svg>
-						<h3 class="text-base font-semibold text-gray-900 mb-1">Upload an image</h3>
-						<p class="text-sm text-gray-500 mb-4">Drag and drop or click to browse</p>
-						<p class="text-xs text-gray-400">JPEG, PNG, GIF, or WebP (max 5MB)</p>
+				<div class="space-y-4">
+					<!-- Description/Text Input - Always visible -->
+					<div>
+						<label class="block text-sm font-medium text-gray-700 mb-2">
+							What's on your mind?
+						</label>
+						<textarea
+							bind:value={description}
+							placeholder="Share your thoughts..."
+							rows="4"
+							maxlength="500"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sage-400 focus:border-transparent resize-none"
+						></textarea>
+						<p class="text-xs text-gray-500 mt-1">{description.length}/500 characters</p>
 					</div>
-					<input
-						type="file"
-						bind:this={fileInput}
-						on:change={handleFileSelect}
-						accept="image/jpeg,image/png,image/gif,image/webp"
-						class="hidden"
-					/>
-				{:else}
-					<!-- Preview Area -->
-					<div class="space-y-4">
+
+					{#if !previewUrl}
+						<!-- Upload Area -->
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-2">
+								Add an image (optional)
+							</label>
+							<div
+								class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+								on:drop={handleDrop}
+								on:dragover={handleDragOver}
+								on:click={() => fileInput.click()}
+							>
+								<svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+								</svg>
+								<p class="text-sm text-gray-500 mb-2">Click to upload or drag and drop</p>
+								<p class="text-xs text-gray-400">JPEG, PNG, GIF, or WebP (max 5MB)</p>
+							</div>
+							<input
+								type="file"
+								bind:this={fileInput}
+								on:change={handleFileSelect}
+								accept="image/jpeg,image/png,image/gif,image/webp"
+								class="hidden"
+							/>
+						</div>
+					{:else}
+						<!-- Preview Area -->
 						<div class="relative rounded-lg overflow-hidden bg-gray-100">
 							<img src={previewUrl} alt="Preview" class="w-full h-auto max-h-96 object-contain"/>
 							<button
@@ -195,24 +221,28 @@
 								</svg>
 							</button>
 						</div>
-						<div class="flex gap-3">
-							<button
-								on:click={handleUpload}
-								disabled={loading}
-								class="flex-1 px-4 py-2.5 bg-sage-500 text-white font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								{loading ? 'Uploading...' : 'Post'}
-							</button>
+					{/if}
+
+					<!-- Post Button - Always visible -->
+					<div class="flex gap-3">
+						<button
+							on:click={handleUpload}
+							disabled={loading}
+							class="flex-1 px-4 py-2.5 bg-sage-500 text-white font-medium rounded-md hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{loading ? 'Posting...' : 'Post'}
+						</button>
+						{#if selectedFile}
 							<button
 								on:click={clearSelection}
 								disabled={loading}
 								class="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
-								Change Image
+								Remove Image
 							</button>
-						</div>
+						{/if}
 					</div>
-				{/if}
+				</div>
 			</div>
 		</div>
 	</div>

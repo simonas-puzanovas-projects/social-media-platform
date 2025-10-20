@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import json
 from .. import db
 
@@ -73,7 +73,7 @@ class PostComment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey('post_comment.id', ondelete='CASCADE'), nullable=True)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('comments', lazy=True, cascade='all, delete-orphan'))
     parent_comment = db.relationship("PostComment", backref=db.backref('replies', cascade='all, delete-orphan'), remote_side=[id])
@@ -85,6 +85,9 @@ class PostComment(db.Model):
 
     def to_dict(self):
         """Convert comment to dictionary for JSON serialization"""
+        # Ensure timestamp is treated as UTC by adding timezone info
+        created_at_utc = self.created_at.replace(tzinfo=timezone.utc) if self.created_at.tzinfo is None else self.created_at
+
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -94,7 +97,7 @@ class PostComment(db.Model):
             'post_id': self.post_id,
             'parent_id': self.parent_id,
             'content': self.content,
-            'created_at': self.created_at.isoformat(),
+            'created_at': created_at_utc.isoformat(),
             'reply_count': self.reply_count,
             'replies': [reply.to_dict() for reply in self.replies] if self.replies else []
         }
@@ -102,9 +105,10 @@ class PostComment(db.Model):
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     owner = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    image_path = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    image_path = db.Column(db.String(100), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     owner_user = db.relationship('User', backref=db.backref('posts', lazy=True, cascade='all, delete-orphan'))
     likes = db.relationship("PostLike", backref='post', cascade='all, delete-orphan')
     comments = db.relationship("PostComment", backref='post', cascade='all, delete-orphan')
@@ -129,6 +133,10 @@ class Post(db.Model):
 
         comment_count = count_all_comments([c for c in self.comments if c.parent_id is None])
 
+        # Ensure timestamps are treated as UTC by adding timezone info
+        created_at_utc = self.created_at.replace(tzinfo=timezone.utc) if self.created_at.tzinfo is None else self.created_at
+        updated_at_utc = self.updated_at.replace(tzinfo=timezone.utc) if self.updated_at.tzinfo is None else self.updated_at
+
         return {
             'id': self.id,
             'owner_id': self.owner,
@@ -136,8 +144,9 @@ class Post(db.Model):
             'owner_display_name': self.owner_user.display_name,
             'owner_avatar': self.owner_user.avatar_path,
             'image_path': self.image_path,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat(),
+            'description': self.description,
+            'created_at': created_at_utc.isoformat(),
+            'updated_at': updated_at_utc.isoformat(),
             "likes": likes,
             "comment_count": comment_count
         }

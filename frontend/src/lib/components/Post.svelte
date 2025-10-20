@@ -10,6 +10,7 @@
 		owner_display_name?: string;
 		owner_avatar?: string;
 		image_path: string;
+		description?: string;
 		created_at: string;
 		likes: Array<{ user_id: number; username: string }>;
 		current_user_id?: number;
@@ -261,14 +262,16 @@
 	}
 
 	function formatDate(dateString: string) {
+		// Parse the ISO string - backend sends UTC time in ISO format
 		const date = new Date(dateString);
-		const now = new Date();
-		const diff = now.getTime() - date.getTime();
+		// Use UTC for "now" to properly compare with UTC timestamps from backend
+		const now = Date.now();
+		const diff = now - date.getTime();
 		const minutes = Math.floor(diff / (1000 * 60));
 		const hours = Math.floor(diff / (1000 * 60 * 60));
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-		if (minutes < 1) return 'just now';
+		if (minutes < 5) return 'just now';
 		if (minutes < 60) return `${minutes}m ago`;
 		if (hours < 24) return `${hours}h ago`;
 		if (days === 1) return 'yesterday';
@@ -432,7 +435,7 @@
 			</div>
 			<div>
 				<h3 class="font-medium text-gray-900">{post.owner_display_name || post.owner_name}</h3>
-				<p class="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString()}</p>
+				<p class="text-xs text-gray-500">{formatDate(post.created_at)}</p>
 			</div>
 		</a>
 		{#if post.owner_id === post.current_user_id}
@@ -448,12 +451,21 @@
 		{/if}
 	</div>
 
-	<!-- Post Image -->
-	<img
-		src="http://localhost:5000/static/{post.image_path}"
-		alt="Post by {post.owner_name}"
-		class="w-full object-cover"
-	/>
+	<!-- Post Description -->
+	{#if post.description}
+		<div class="px-4" class:pb-3={post.image_path} class:py-4={!post.image_path}>
+			<p class="text-gray-800 whitespace-pre-wrap break-words">{post.description}</p>
+		</div>
+	{/if}
+
+	<!-- Post Image (only if image exists) -->
+	{#if post.image_path}
+		<img
+			src="http://localhost:5000/static/{post.image_path}"
+			alt="Post by {post.owner_name}"
+			class="w-full object-cover"
+		/>
+	{/if}
 
 	<!-- Post Actions -->
 	<div class="p-4 border-b border-gray-100">

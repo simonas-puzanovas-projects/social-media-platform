@@ -58,13 +58,20 @@ def profile(username):
 @login_required
 def upload_image():
 
-        if 'image' not in request.files:
-            return jsonify({'success': False, 'message': 'No image file provided'}), 400
-
         try:
             user = user_service.get_user(session['user_id'])
-            file = post_service.validate_image(request.files["image"])
-            new_post = post_service.create_post(user.id, file)
+            description = request.form.get('description', '').strip() or None
+
+            # Allow posts with just text or just image or both
+            file = None
+            if 'image' in request.files and request.files['image'].filename:
+                file = post_service.validate_image(request.files["image"])
+
+            # Must have either image or description
+            if not file and not description:
+                return jsonify({'success': False, 'message': 'Post must have either text or image'}), 400
+
+            new_post = post_service.create_post(user.id, file, description)
 
         except PostServiceError as e:
             return jsonify({'success': False, 'message': str(e)}), 400

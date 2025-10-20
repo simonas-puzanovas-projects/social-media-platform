@@ -39,20 +39,25 @@ class PostService:
             print("message:", e)
             raise PostServiceError(e)
     
-    def create_post(self, user_id, file):
+    def create_post(self, user_id, file, description=None):
+            image_path = None
 
-            upload_folder = os.path.join('app', 'static', 'uploads')
-            os.makedirs(upload_folder, exist_ok=True)
+            # Only process image if file is provided
+            if file:
+                upload_folder = os.path.join('app', 'static', 'uploads')
+                os.makedirs(upload_folder, exist_ok=True)
 
-            file_extension = file.filename.rsplit('.', 1)[1].lower()
-            unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
-            file_path = os.path.join(upload_folder, unique_filename)
+                file_extension = file.filename.rsplit('.', 1)[1].lower()
+                unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+                file_path = os.path.join(upload_folder, unique_filename)
 
-            file.save(file_path)
+                file.save(file_path)
+                image_path = f"uploads/{unique_filename}"
 
             new_post = Post(
                 owner=user_id,
-                image_path=f"uploads/{unique_filename}"
+                image_path=image_path,
+                description=description
             )
 
             self.db.session.add(new_post)
@@ -79,9 +84,11 @@ class PostService:
             raise PostServiceError("Post not found or not authorized")
 
         try:
-            image_path = os.path.join('app', 'static', post.image_path)
-            if os.path.exists(image_path):
-                os.remove(image_path)
+            # Only delete image file if post has an image
+            if post.image_path:
+                image_path = os.path.join('app', 'static', post.image_path)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
 
             self.db.session.delete(post)
             self.db.session.commit()
